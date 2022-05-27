@@ -27,6 +27,7 @@ jobs:
         with:
           name: github-pages
           path: ./artifact.tar
+          retention-days: 1
 
   # Deploy the artifact to GitHub pages
   deploy:
