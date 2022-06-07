@@ -1,0 +1,6 @@
+SymCAD Library
+==============
+
+DO NOT ATTEMPT TO USE
+
+NOT FULLY COMMITTED
