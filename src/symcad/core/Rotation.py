@@ -17,6 +17,7 @@
 from __future__ import annotations
 from typing import List, Tuple, Union
 from sympy import Expr, Symbol
+from copy import deepcopy
 from operator import mul
 import math, sympy
 
@@ -167,6 +168,18 @@ class Rotation(object):
 
    def __eq__(self, other: Rotation) -> bool:
       return (self.roll == other.roll) and (self.pitch == other.pitch) and (self.yaw == other.yaw)
+
+   def __copy__(self):
+      copy = self.__class__.__new__(self.__class__)
+      copy.__dict__.update(self.__dict__)
+      return copy
+
+   def __deepcopy__(self, memo):
+      copy = self.__class__.__new__(self.__class__)
+      memo[id(self)] = copy
+      for key, val in self.__dict__.items():
+         setattr(copy, key, deepcopy(val, memo))
+      return copy
 
 
    # Public methods -------------------------------------------------------------------------------

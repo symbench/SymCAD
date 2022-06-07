@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from symcad.core import Geometry
+from copy import deepcopy
 from sympy import Symbol
 
 if __name__ == '__main__':
@@ -20,6 +21,15 @@ if __name__ == '__main__':
 
    # Test cloning a geometry
    cloned_geometry = geometry.clone()
+   assert cloned_geometry.name == geometry_id
+   assert isinstance(cloned_geometry.radius, Symbol)
+   assert isinstance(cloned_geometry.length, float)
+   assert cloned_geometry.radius == Symbol(geometry_id + '_radius')
+   assert cloned_geometry.length == 1.0
+   assert cloned_geometry == geometry
+
+   # Test cloning a geometry using the copy library
+   cloned_geometry = deepcopy(geometry)
    assert cloned_geometry.name == geometry_id
    assert isinstance(cloned_geometry.radius, Symbol)
    assert isinstance(cloned_geometry.length, float)

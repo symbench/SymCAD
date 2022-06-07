@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
+from copy import deepcopy
 from sympy import Symbol
 
 
@@ -45,6 +46,18 @@ class Geometry(object):
          if key != 'name' and (key not in other.__dict__ or val != getattr(other, key)):
             return False
       return True
+
+   def __copy__(self):
+      copy = self.__class__.__new__(self.__class__)
+      copy.__dict__.update(self.__dict__)
+      return copy
+
+   def __deepcopy__(self, memo):
+      copy = self.__class__.__new__(self.__class__)
+      memo[id(self)] = copy
+      for key, val in self.__dict__.items():
+         setattr(copy, key, deepcopy(val, memo))
+      return copy
 
    def __imul__(self, value: float) -> Geometry:
       for key, val in self.__dict__.items():

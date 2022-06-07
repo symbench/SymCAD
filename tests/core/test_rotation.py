@@ -2,6 +2,7 @@
 
 from symcad.core import Rotation
 from sympy import Expr, Symbol
+from copy import deepcopy
 import math
 
 if __name__ == '__main__':
@@ -53,6 +54,30 @@ if __name__ == '__main__':
 
    # Test cloning symbolic rotations
    cloned_rotation = symbolic_rotation.clone()
+   assert cloned_rotation.name == symbolic_id
+   assert isinstance(cloned_rotation.roll, Expr)
+   assert isinstance(cloned_rotation.pitch, Expr)
+   assert isinstance(cloned_rotation.yaw, Expr)
+   assert cloned_rotation.roll == Symbol('roll')
+   assert cloned_rotation.pitch == Symbol('pitch')
+   assert cloned_rotation.yaw == Symbol('yaw')
+   assert cloned_rotation == symbolic_rotation
+   assert cloned_rotation != concrete_rotation
+
+   # Test cloning concrete rotations using the copy library
+   cloned_rotation = deepcopy(concrete_rotation)
+   assert cloned_rotation.name == concrete_id
+   assert isinstance(cloned_rotation.roll, float)
+   assert isinstance(cloned_rotation.pitch, float)
+   assert isinstance(cloned_rotation.yaw, float)
+   assert cloned_rotation.roll == 1.0
+   assert cloned_rotation.pitch == 2.0
+   assert cloned_rotation.yaw == 3.0
+   assert cloned_rotation == concrete_rotation
+   assert cloned_rotation != symbolic_rotation
+
+   # Test cloning symbolic rotations using the copy library
+   cloned_rotation = deepcopy(symbolic_rotation)
    assert cloned_rotation.name == symbolic_id
    assert isinstance(cloned_rotation.roll, Expr)
    assert isinstance(cloned_rotation.pitch, Expr)

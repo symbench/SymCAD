@@ -2,6 +2,7 @@
 
 from symcad.core import Coordinate
 from sympy import Expr, Symbol
+from copy import deepcopy
 
 if __name__ == '__main__':
 
@@ -51,6 +52,30 @@ if __name__ == '__main__':
 
    # Test cloning symbolic coordinates
    cloned_coordinate = symbolic_coordinate.clone()
+   assert cloned_coordinate.name == symbolic_coordinate.name
+   assert isinstance(cloned_coordinate.x, Expr)
+   assert isinstance(cloned_coordinate.y, Expr)
+   assert isinstance(cloned_coordinate.z, Expr)
+   assert cloned_coordinate.x == Symbol('x')
+   assert cloned_coordinate.y == Symbol('y')
+   assert cloned_coordinate.z == Symbol(symbolic_id + '_z')
+   assert cloned_coordinate != concrete_coordinate
+   assert cloned_coordinate == symbolic_coordinate
+
+   # Test cloning concrete coordinates using the copy library
+   cloned_coordinate = deepcopy(concrete_coordinate)
+   assert cloned_coordinate.name == concrete_coordinate.name
+   assert isinstance(cloned_coordinate.x, float)
+   assert isinstance(cloned_coordinate.y, float)
+   assert isinstance(cloned_coordinate.z, float)
+   assert cloned_coordinate.x == 1.0
+   assert cloned_coordinate.y == 2.0
+   assert cloned_coordinate.z == 3.0
+   assert cloned_coordinate == concrete_coordinate
+   assert cloned_coordinate != symbolic_coordinate
+
+   # Test cloning symbolic coordinates using the copy library
+   cloned_coordinate = deepcopy(symbolic_coordinate)
    assert cloned_coordinate.name == symbolic_coordinate.name
    assert isinstance(cloned_coordinate.x, Expr)
    assert isinstance(cloned_coordinate.y, Expr)
