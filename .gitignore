@@ -68,8 +68,13 @@ instance/
 # Scrapy stuff:
 .scrapy
 
+# Mac stuff:
+.DS_Store
+
 # Sphinx documentation
 docs/_build/
+docs/**/*.html
+docs/**/*.js
 
 # PyBuilder
 target/
