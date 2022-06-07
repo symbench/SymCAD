@@ -66,6 +66,7 @@ class Rotation(object):
       the counter-clockwise direction when viewed from a positive axis looking toward origin,
       first around the z-axis, then the y-axis, and finally around the x-axis.
       """
+      super().__init__()
       self.name = identifier
       self.roll = kwargs.get('roll', 0.0)
       self.pitch = kwargs.get('pitch', 0.0)
@@ -186,7 +187,7 @@ class Rotation(object):
 
    def clone(self) -> Rotation:
       """Returns an exact clone of this `Rotation` instance."""
-      return Rotation(self.name, roll=self.roll, pitch=self.pitch, yaw=self.yaw)
+      return deepcopy(self)
 
 
    def copy_from(self, other: Rotation) -> Rotation:

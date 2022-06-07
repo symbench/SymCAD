@@ -46,6 +46,7 @@ class Coordinate(object):
       for each axis of the coordinate. If any of these keywords are missing, the corresponding
       coordinate will be treated as a symbol.
       """
+      super().__init__()
       self.name = identifier
       self.x = kwargs.get('x', Symbol(identifier + '_x'))
       self.y = kwargs.get('y', Symbol(identifier + '_y'))
@@ -77,7 +78,7 @@ class Coordinate(object):
 
    def clone(self) -> Coordinate:
       """Returns an exact clone of this `Coordinate` instance."""
-      return Coordinate(self.name, x=self.x, y=self.y, z=self.z)
+      return deepcopy(self)
 
 
    def copy_from(self, other: Coordinate) -> Coordinate:

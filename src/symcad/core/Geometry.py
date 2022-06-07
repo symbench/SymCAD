@@ -32,6 +32,7 @@ class Geometry(object):
 
    def __init__(self, identifier: str) -> None:
       """Initializes a `Geometry` instance, where `identifier` uniquely identifies the instance."""
+      super().__init__()
       self.name = identifier
 
 
@@ -76,7 +77,7 @@ class Geometry(object):
 
    def clone(self) -> Geometry:
       """Returns an exact clone of this `Geometry` instance."""
-      return Geometry(self.name).copy_from(self)
+      return deepcopy(self)
 
 
    def copy_from(self, other: Geometry) -> Geometry:
