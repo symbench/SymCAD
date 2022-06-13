@@ -42,3 +42,8 @@ class EndcapShape(SymPart, metaclass=abc.ABCMeta):
                           if isinstance(cad_representation, str) else
                        cad_representation,
                        material_density_kg_m3)
+
+from .FlangedFlatPlate import FlangedFlatPlate
+from .Hemisphere import Hemisphere
+from .Semiellipsoid import Semiellipsoid
+from .Torisphere import Torisphere
