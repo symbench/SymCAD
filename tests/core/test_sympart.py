@@ -187,6 +187,7 @@ if __name__ == '__main__':
    props = shape.get_cad_physical_properties()
    assert 'xlen' in props and 'ylen' in props and 'zlen' in props
    assert 'cg_x' in props and 'cg_y' in props and 'cg_z' in props
+   assert 'cb_x' in props and 'cb_y' in props and 'cb_z' in props
    assert 'mass' in props
    assert 'material_volume' in props and 'displaced_volume' in props
    assert 'surface_area' in props
