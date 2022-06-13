@@ -18,7 +18,6 @@ from __future__ import annotations
 from copy import deepcopy
 from sympy import Symbol
 
-
 class Geometry(object):
    """Represents the shape-specific parametric geometry of a `SymPart`."""
 

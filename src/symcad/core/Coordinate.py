@@ -19,7 +19,6 @@ from typing import Tuple, Union
 from sympy import Expr, Symbol
 from copy import deepcopy
 
-
 class Coordinate(object):
    """Represents a set of XYZ Cartesian coordinates."""
 

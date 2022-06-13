@@ -21,7 +21,6 @@ from copy import deepcopy
 from operator import mul
 import math, sympy
 
-
 Quaternion = Tuple[Union[float, Expr], Union[float, Expr], Union[float, Expr], Union[float, Expr]]
 
 class Rotation(object):

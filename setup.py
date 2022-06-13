@@ -3,8 +3,7 @@ from pathlib import Path
 from setuptools import setup
 
 VERSION = re.search(r'__version__ = \'(.+?)\'',
-                    (Path(__file__).parent / "src" / "symcad" / "__init__.py").read_text("utf8"))\
-          .group(1)
+                    (Path(__file__).parent / "src" / "symcad" / "__init__.py").read_text("utf8")).group(1)
 
 install_deps = []
 with open('requirements.txt') as file:

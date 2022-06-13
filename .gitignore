@@ -78,6 +78,9 @@ docs/**/*.js
 # PyBuilder
 target/
 
+# Converted FreeCAD files
+converted/
+
 # Jupyter Notebook
 .ipynb_checkpoints
 
