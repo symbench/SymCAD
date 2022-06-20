@@ -22,6 +22,8 @@ from . import CadGeneral
 from pathlib import Path
 from sympy import Expr
 
+TESSELATION_VALUE = 1.0
+
 class ScriptedCad(object):
    """Private helper class to generate a CAD representation from a `SymPart`."""
 
@@ -90,7 +92,7 @@ class ScriptedCad(object):
       # Create and add a new CAD model to the assembly
       model = assembly.addObject(CadGeneral.PART_FEATURE_STRING, model_name)
       model.Shape = self.creation_callback(concrete_parameters, fully_displace)
-      model.Shape.tessellate(0.1)
+      model.Shape.tessellate(TESSELATION_VALUE)
       assembly.recompute()
 
       # Properly place and orient the CAD model in the assembly
@@ -107,7 +109,7 @@ class ScriptedCad(object):
                                   yaw_pitch_roll_deg[1],
                                   yaw_pitch_roll_deg[2])
       model.Placement = FreeCAD.Placement(placement, rotation, rotation_point)
-      model.Shape.tessellate(0.1)
+      model.Shape.tessellate(TESSELATION_VALUE)
       assembly.recompute()
 
 
@@ -130,7 +132,7 @@ class ScriptedCad(object):
       yaw_pitch_roll_deg : `Tuple[float, float, float]`
          Global yaw-, pitch-, and roll-orientation in degrees of the CAD object.
       material_density_kg_m3 : `float`
-         Uniform material density to be used in mass property calculations (in `kg per m^3`).
+         Uniform material density to be used in mass property calculations (in `kg/m^3`).
 
       Returns
       -------
@@ -149,35 +151,26 @@ class ScriptedCad(object):
             raise RuntimeError('The geometric parameter "{}" of the part must not be symbolic to '
                                'calculate its physical properties from CAD'.format(key))
 
-      # Create and tessellate the scripted CAD model
+      # Create the scripted CAD model
       doc = FreeCAD.newDocument()
       model = doc.addObject(CadGeneral.PART_FEATURE_STRING, 'Model')
       model.Shape = self.creation_callback(concrete_parameters, False)
-      model.Shape.tessellate(0.1)
-      doc.recompute()
-
-      # Properly place and orient the CAD model
       rotation = FreeCAD.Rotation(yaw_pitch_roll_deg[0],
                                   yaw_pitch_roll_deg[1],
                                   yaw_pitch_roll_deg[2])
       model.Placement = FreeCAD.Placement(FreeCAD.Vector(), rotation)
-      model.Shape.tessellate(0.1)
-      doc.recompute()
-      model = model.Shape
+      model.Shape.tessellate(TESSELATION_VALUE)
 
       # Create a separate displacement model
       displaced_model = doc.addObject(CadGeneral.PART_FEATURE_STRING, 'DisplacedModel')
       displaced_model.Shape = self.creation_callback(concrete_parameters, True)
-      displaced_model.Shape.tessellate(0.1)
-      doc.recompute()
       displaced_model.Placement = FreeCAD.Placement(FreeCAD.Vector(), rotation)
-      displaced_model.Shape.tessellate(0.1)
-      doc.recompute()
-      displaced_model = displaced_model.Shape
+      displaced_model.Shape.tessellate(TESSELATION_VALUE)
 
       # Retrieve all geometric model properties
-      properties = CadGeneral.fetch_model_geometric_properties(model,
-                                                               displaced_model,
+      doc.recompute()
+      properties = CadGeneral.fetch_model_geometric_properties(model.Shape,
+                                                               displaced_model.Shape,
                                                                material_density_kg_m3)
       FreeCAD.closeDocument(doc.Name)
       return properties
@@ -220,15 +213,11 @@ class ScriptedCad(object):
       doc = FreeCAD.newDocument()
       model = doc.addObject(CadGeneral.PART_FEATURE_STRING, 'Model')
       model.Shape = self.creation_callback(concrete_parameters, False)
-      model.Shape.tessellate(0.1)
-      doc.recompute()
-
-      # Properly orient the CAD model
       rotation = FreeCAD.Rotation(yaw_pitch_roll_deg[0],
                                   yaw_pitch_roll_deg[1],
                                   yaw_pitch_roll_deg[2])
       model.Placement = FreeCAD.Placement(FreeCAD.Vector(), rotation)
-      model.Shape.tessellate(0.1)
+      model.Shape.tessellate(TESSELATION_VALUE)
       doc.recompute()
 
       # Create the requested CAD format of the model

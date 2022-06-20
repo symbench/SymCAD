@@ -325,3 +325,10 @@ class Rotation(object):
       return [[rotation_matrix00, rotation_matrix01, rotation_matrix02],
               [rotation_matrix10, rotation_matrix11, rotation_matrix12],
               [rotation_matrix20, rotation_matrix21, rotation_matrix22]]
+
+
+   def as_tuple(self) -> Tuple[float, float, float]:
+      """Returns the current yaw-pitch-roll angles as a `tuple` in degrees."""
+      return (self.yaw * 180.0 / math.pi,
+              self.pitch * 180.0 / math.pi,
+              self.roll * 180.0 / math.pi)

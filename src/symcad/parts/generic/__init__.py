@@ -42,3 +42,19 @@ class GenericShape(SymPart, metaclass=abc.ABCMeta):
                           if isinstance(cad_representation, str) else
                        cad_representation,
                        material_density_kg_m3)
+
+from .Box import Box
+from .Capsule import Capsule
+from .Cone import Cone
+from .Cuboid import Cuboid
+from .Custom import Custom
+from .Cylinder import Cylinder
+from .EllipsoidalCap import EllipsoidalCap
+from .EllipticCylinder import EllipticCylinder
+from .EllipticPipe import EllipticPipe
+from .Parallelepiped import Parallelepiped
+from .Pipe import Pipe
+from .Prism import Prism
+from .Pyramid import Pyramid
+from .Sphere import Sphere
+from .Torus import Torus

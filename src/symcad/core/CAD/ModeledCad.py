@@ -201,7 +201,7 @@ class ModeledCad(object):
       yaw_pitch_roll_deg : `Tuple[float, float, float]`
          Global yaw-, pitch-, and roll-orientation in degrees of the CAD object.
       material_density_kg_m3 : `float`
-         Uniform material density to be used in mass property calculations (in `kg per m^3`).
+         Uniform material density to be used in mass property calculations (in `kg/m^3`).
 
       Returns
       -------

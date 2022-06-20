@@ -30,7 +30,7 @@ class CompositeShape(SymPart, metaclass=abc.ABCMeta):
       Parameters
       ----------
       identifier : `str`
-         Unique, identifying name for the Compositehape.
+         Unique, identifying name for the CompositeShape.
       cad_representation : `Union[str, Callable]`
          Either the path to a representative CAD model for the given CompositeShape or a callable
          method that can create such a model.

@@ -21,9 +21,9 @@ from .Geometry import Geometry
 from .Rotation import Rotation
 from typing import Callable, Dict, List
 from typing import Literal, Tuple, TypeVar, Union
+from sympy import Expr, Max, Min
 from copy import deepcopy
-from sympy import Expr
-import abc, math
+import abc
 
 SymPartSub = TypeVar('SymPartSub', bound='SymPart')
 
@@ -166,6 +166,28 @@ class SymPart(metaclass=abc.ABCMeta):
    def __itruediv__(self: SymPartSub, value: float) -> SymPartSub:
       self.geometry /= value
       return self
+
+
+   # Private helper methods -----------------------------------------------------------------------
+
+   def _compute_bounding_box(self) -> List[Tuple[float, float, float]]:
+      """Returns the oriented bounding box of this `SymPart` as a list of eight XYZ coordinates."""
+      bounding_box = [(0.0, 0.0, 0.0)]
+      bounding_box.append(self.orientation.rotate_point((0.0, 0.0, 0.0),
+                          (self.unoriented_length, 0.0, 0.0)))
+      bounding_box.append(self.orientation.rotate_point((0.0, 0.0, 0.0),
+                          (0.0, self.unoriented_width, 0.0)))
+      bounding_box.append(self.orientation.rotate_point((0.0, 0.0, 0.0),
+                          (self.unoriented_length, self.unoriented_width, 0.0)))
+      bounding_box.append(self.orientation.rotate_point((0.0, 0.0, 0.0),
+                          (0.0, 0.0, self.unoriented_height)))
+      bounding_box.append(self.orientation.rotate_point((0.0, 0.0, 0.0),
+                          (self.unoriented_length, 0.0, self.unoriented_height)))
+      bounding_box.append(self.orientation.rotate_point((0.0, 0.0, 0.0),
+                          (0.0, self.unoriented_width, self.unoriented_height)))
+      bounding_box.append(self.orientation.rotate_point((0.0, 0.0, 0.0),
+                          (self.unoriented_length, self.unoriented_width, self.unoriented_height)))
+      return bounding_box
 
 
    # Public methods -------------------------------------------------------------------------------
@@ -409,11 +431,8 @@ class SymPart(metaclass=abc.ABCMeta):
       `Dict[str, float]`
          A list of physical properties as calculated from the underlying CAD model.
       """
-      orientation_deg = (self.orientation.yaw * 180.0 / math.pi,
-                         self.orientation.pitch * 180.0 / math.pi,
-                         self.orientation.roll * 180.0 / math.pi)
       return self.__cad__.get_physical_properties(self.geometry.__dict__,
-                                                  orientation_deg,
+                                                  self.orientation.as_tuple(),
                                                   self.material_density)
 
 
@@ -429,10 +448,10 @@ class SymPart(metaclass=abc.ABCMeta):
       export_type : {'freecad', 'step', 'stl'}
          Format of the CAD model to export.
       """
-      orientation_deg = (self.orientation.yaw * 180.0 / math.pi,
-                         self.orientation.pitch * 180.0 / math.pi,
-                         self.orientation.roll * 180.0 / math.pi)
-      self.__cad__.export_model(save_path, export_type, self.geometry.__dict__, orientation_deg)
+      self.__cad__.export_model(save_path,
+                                export_type,
+                                self.geometry.__dict__,
+                                self.orientation.as_tuple())
 
 
    # Abstract methods that must be overridden -----------------------------------------------------
@@ -482,12 +501,6 @@ class SymPart(metaclass=abc.ABCMeta):
 
    @property
    @abc.abstractmethod
-   def centroid(self) -> Tuple[float, float, float]:
-      """Centroid (in `m`) of the oriented SymPart (read-only)."""
-      raise NotImplementedError
-
-   @property
-   @abc.abstractmethod
    def center_of_gravity(self) -> Tuple[float, float, float]:
       """Center of gravity (in `m`) of the oriented SymPart (read-only)."""
       raise NotImplementedError
@@ -499,19 +512,37 @@ class SymPart(metaclass=abc.ABCMeta):
       raise NotImplementedError
 
    @property
+   def oriented_length(self) -> float:
+      """X-axis length (in `m`) of the bounding box of the **oriented** SymPart (read-only)."""
+      x_coordinates = [point[0] for point in self._compute_bounding_box()]
+      return Max(*x_coordinates) - Min(*x_coordinates)
+
+   @property
+   def oriented_width(self) -> float:
+      """Y-axis width (in `m`) of the bounding box of the **oriented** SymPart (read-only)."""
+      y_coordinates = [point[1] for point in self._compute_bounding_box()]
+      return Max(*y_coordinates) - Min(*y_coordinates)
+
+   @property
+   def oriented_height(self) -> float:
+      """Z-axis height (in `m`) of the bounding box of the **oriented** SymPart (read-only)."""
+      z_coordinates = [point[2] for point in self._compute_bounding_box()]
+      return Max(*z_coordinates) - Min(*z_coordinates)
+
+   @property
    @abc.abstractmethod
-   def length(self) -> float:
+   def unoriented_length(self) -> float:
       """X-axis length (in `m`) of the bounding box of the **unoriented** SymPart (read-only)."""
       raise NotImplementedError
 
    @property
    @abc.abstractmethod
-   def width(self) -> float:
+   def unoriented_width(self) -> float:
       """Y-axis width (in `m`) of the bounding box of the **unoriented** SymPart (read-only)."""
       raise NotImplementedError
 
    @property
    @abc.abstractmethod
-   def height(self) -> float:
+   def unoriented_height(self) -> float:
       """Z-axis height (in `m`) of the bounding box of the **unoriented** SymPart (read-only)."""
       raise NotImplementedError

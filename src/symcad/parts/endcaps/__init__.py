@@ -43,6 +43,7 @@ class EndcapShape(SymPart, metaclass=abc.ABCMeta):
                        cad_representation,
                        material_density_kg_m3)
 
+from .ConicalFrustrum import ConicalFrustrum
 from .FlangedFlatPlate import FlangedFlatPlate
 from .Hemisphere import Hemisphere
 from .Semiellipsoid import Semiellipsoid

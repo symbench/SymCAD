@@ -203,7 +203,7 @@ def fetch_model_geometric_properties(model: Part.Feature,
       CAD model for which to compute the geometric properties assuming full displacement
       of a solid.
    material_density_kg_m3 : `float`
-      Uniform material density to be used in mass property calculations (in `kg per m^3`).
+      Uniform material density to be used in mass property calculations (in `kg/m^3`).
 
    Returns
    -------
@@ -222,7 +222,11 @@ def fetch_model_geometric_properties(model: Part.Feature,
                     FreeCAD.Units.Quantity(model.BoundBox.XMin, FreeCAD.Units.Length)
                                  .getValueAs('m')),
       'cg_y': float(FreeCAD.Units.Quantity(model.CenterOfGravity[1], FreeCAD.Units.Length)
-                                 .getValueAs('m')),
+                                 .getValueAs('m') -
+                    FreeCAD.Units.Quantity(model.BoundBox.YMin, FreeCAD.Units.Length)
+                                 .getValueAs('m') -
+                    FreeCAD.Units.Quantity(model.BoundBox.YLength, FreeCAD.Units.Length)
+                                 .getValueAs('m') * 0.5),
       'cg_z': float(FreeCAD.Units.Quantity(model.CenterOfGravity[2], FreeCAD.Units.Length)
                                  .getValueAs('m') -
                     FreeCAD.Units.Quantity(model.BoundBox.ZMin, FreeCAD.Units.Length)
@@ -232,7 +236,11 @@ def fetch_model_geometric_properties(model: Part.Feature,
                     FreeCAD.Units.Quantity(displaced_model.BoundBox.XMin, FreeCAD.Units.Length)
                                  .getValueAs('m')),
       'cb_y': float(FreeCAD.Units.Quantity(displaced_model.CenterOfGravity[1],
-                                           FreeCAD.Units.Length).getValueAs('m')),
+                                           FreeCAD.Units.Length).getValueAs('m') -
+                    FreeCAD.Units.Quantity(displaced_model.BoundBox.YMin, FreeCAD.Units.Length)
+                                 .getValueAs('m') -
+                    FreeCAD.Units.Quantity(displaced_model.BoundBox.YLength, FreeCAD.Units.Length)
+                                 .getValueAs('m') * 0.5),
       'cb_z': float(FreeCAD.Units.Quantity(displaced_model.CenterOfGravity[2],
                                            FreeCAD.Units.Length).getValueAs('m') -
                     FreeCAD.Units.Quantity(displaced_model.BoundBox.ZMin, FreeCAD.Units.Length)
@@ -244,18 +252,18 @@ def fetch_model_geometric_properties(model: Part.Feature,
       'displaced_volume': float(FreeCAD.Units.Quantity(displaced_model.Volume,
                                                          FreeCAD.Units.Volume)
                                  .getValueAs('m^3')),
-      'surface_area': float(FreeCAD.Units.Quantity(model.Area, FreeCAD.Units.Area)
+      'surface_area': float(FreeCAD.Units.Quantity(displaced_model.Area, FreeCAD.Units.Area)
                                  .getValueAs('m^2'))
    }
 
 
 def fetch_assembly_geometric_properties(assembly: FreeCAD.Document,
                                         displaced: FreeCAD.Document,
-                                        material_density_kg_m3: float) -> Dict[str, float]:
+                                        material_densities: Dict[str, float]) -> Dict[str, float]:
    """Returns all physical properties of the specified CAD assembly.
 
-   Mass properties will be computed assuming a uniform material density as specified in
-   the `material_density_kg_m3` parameter.
+   Mass properties will be computed assuming each constituent part has a uniform material density
+   as specified by its corresponding value in `kg/m^3` in the `material_densities` parameter.
 
    Parameters
    ----------
@@ -264,8 +272,8 @@ def fetch_assembly_geometric_properties(assembly: FreeCAD.Document,
    displaced : `FreeCAD.Document`
       CAD assembly for which to compute the geometric properties assuming full displacement
       of a solid.
-   material_density_kg_m3 : `float`
-      Uniform material density to be used in mass property calculations (in `kg per m^3`).
+   material_densities : `Dict[str, float]`
+      Uniform material densities to be used in mass property calculations (in `kg/m^3`).
 
    Returns
    -------
