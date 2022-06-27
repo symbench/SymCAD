@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
-from typing import Tuple, Union
+from typing import List, Optional, Tuple, Union
 from sympy import Expr, Symbol
 from copy import deepcopy
 
@@ -75,9 +75,18 @@ class Coordinate(object):
 
    # Public methods -------------------------------------------------------------------------------
 
-   def clone(self) -> Coordinate:
-      """Returns an exact clone of this `Coordinate` instance."""
-      return deepcopy(self)
+   def clone(self, concrete_values: Optional[List[Tuple[str, float]]] = None) -> Coordinate:
+      """Returns an exact clone of this `Coordinate` instance, optionally replacing any symbolic
+      parameters with their corresponding values as specified in the `concrete_values` list."""
+      copy = deepcopy(self)
+      if concrete_values is not None:
+         if isinstance(copy.x, Expr):
+            copy.x = copy.x.subs(concrete_values)
+         if isinstance(copy.y, Expr):
+            copy.y = copy.y.subs(concrete_values)
+         if isinstance(copy.z, Expr):
+            copy.z = copy.z.subs(concrete_values)
+      return copy
 
 
    def copy_from(self, other: Coordinate) -> Coordinate:
