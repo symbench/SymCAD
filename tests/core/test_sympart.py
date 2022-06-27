@@ -74,14 +74,12 @@ if __name__ == '__main__':
    assert shape.connection_ports[1].z == 23.0
 
    # Test built-in mathematical functionality
-   shape.set_geometry(radius_m=1.0, flange_radius_m=2.0, thickness_m=3.0)
+   shape.set_geometry(radius_m=1.0, thickness_m=3.0)
    shape *= 2.0
    assert shape.geometry.radius == 2.0
-   assert shape.geometry.flange_radius == 4.0
    assert shape.geometry.thickness == 6.0
    shape /= 2.0
    assert shape.geometry.radius == 1.0
-   assert shape.geometry.flange_radius == 2.0
    assert shape.geometry.thickness == 3.0
 
    # Test manipulating the placement, center of placement, and offset
@@ -165,13 +163,9 @@ if __name__ == '__main__':
    assert shape2.connections['connection_port1'] == shape1.name + '#connection_port1'
    assert shape2.connections['connection_port3'] == shape1.name + '#connection_port2'
 
-   # Test CadDetails creation
-   assert shape1.__cad__ is not None
-   assert os.path.exists(shape1.__cad__.cad_file_path)
-   assert os.path.exists(shape2.__cad__.cad_file_path)
-
    # Test exporting as a CAD model
-   shape.set_geometry(radius_m=1.0, flange_radius_m=0.2, thickness_m=0.01)
+   assert shape1.__cad__ is not None
+   shape.set_geometry(radius_m=1.0, thickness_m=0.01)
    shape.export('test_output.FCStd', 'freecad')
    shape.export('test_output.stl', 'stl')
    shape.export('test_output.stp', 'step')
@@ -196,3 +190,6 @@ if __name__ == '__main__':
    assert isinstance(props['mass'], float)
    assert isinstance(props['material_volume'], float) and isinstance(props['displaced_volume'], float)
    assert isinstance(props['surface_area'], float)
+
+   # Test physical properties after part rotation
+   # TODO: This

@@ -18,6 +18,7 @@ from __future__ import annotations
 from typing import Callable, Dict, Literal, Optional, Tuple
 from PyFreeCAD.FreeCAD import FreeCAD, Part
 from ..Coordinate import Coordinate
+from .CadGeneral import is_symbolic
 from . import CadGeneral
 from pathlib import Path
 from sympy import Expr
@@ -80,12 +81,12 @@ class ScriptedCad(object):
       """
 
       # Verify that all parameters are concrete
-      if isinstance(yaw_pitch_roll_deg[0], Expr) or isinstance(yaw_pitch_roll_deg[1], Expr) or \
-                                                    isinstance(yaw_pitch_roll_deg[2], Expr):
+      if is_symbolic(yaw_pitch_roll_deg[0]) or is_symbolic(yaw_pitch_roll_deg[1]) or \
+                                               is_symbolic(yaw_pitch_roll_deg[2]):
          raise RuntimeError('The orientation of the part ("{}") must not be symbolic to add it '
                             'to a CAD assembly'.format(yaw_pitch_roll_deg))
       for key, val in concrete_parameters.items():
-         if isinstance(val, Expr):
+         if key != 'name' and is_symbolic(val):
             raise RuntimeError('The geometric parameter "{}" of the part must not be symbolic to '
                                'add it to a CAD assembly'.format(key))
 
@@ -142,12 +143,12 @@ class ScriptedCad(object):
       """
 
       # Verify that all parameters are concrete
-      if isinstance(yaw_pitch_roll_deg[0], Expr) or isinstance(yaw_pitch_roll_deg[1], Expr) or \
-                                                    isinstance(yaw_pitch_roll_deg[2], Expr):
+      if is_symbolic(yaw_pitch_roll_deg[0]) or is_symbolic(yaw_pitch_roll_deg[1]) or \
+                                               is_symbolic(yaw_pitch_roll_deg[2]):
          raise RuntimeError('The orientation of the part ("{}") must not be symbolic to calculate '
                             'its physical properties from CAD'.format(yaw_pitch_roll_deg))
       for key, val in concrete_parameters.items():
-         if isinstance(val, Expr):
+         if is_symbolic(val):
             raise RuntimeError('The geometric parameter "{}" of the part must not be symbolic to '
                                'calculate its physical properties from CAD'.format(key))
 
@@ -167,11 +168,11 @@ class ScriptedCad(object):
       displaced_model.Placement = FreeCAD.Placement(FreeCAD.Vector(), rotation)
       displaced_model.Shape.tessellate(TESSELATION_VALUE)
 
-      # Retrieve all geometric model properties
+      # Retrieve all physical model properties
       doc.recompute()
-      properties = CadGeneral.fetch_model_geometric_properties(model.Shape,
-                                                               displaced_model.Shape,
-                                                               material_density_kg_m3)
+      properties = CadGeneral.fetch_model_physical_properties(model.Shape,
+                                                              displaced_model.Shape,
+                                                              material_density_kg_m3)
       FreeCAD.closeDocument(doc.Name)
       return properties
 
@@ -195,12 +196,12 @@ class ScriptedCad(object):
       """
 
       # Verify that all parameters have concrete representations
-      if isinstance(yaw_pitch_roll_deg[0], Expr) or isinstance(yaw_pitch_roll_deg[1], Expr) or \
-                                                    isinstance(yaw_pitch_roll_deg[2], Expr):
+      if is_symbolic(yaw_pitch_roll_deg[0]) or is_symbolic(yaw_pitch_roll_deg[1]) or \
+                                               is_symbolic(yaw_pitch_roll_deg[2]):
          raise RuntimeError('The orientation of the part ("{}") must not be symbolic to export '
                             'it as a CAD model'.format(yaw_pitch_roll_deg))
       for key, val in concrete_parameters.items():
-         if isinstance(val, Expr):
+         if is_symbolic(val):
             raise RuntimeError('The geometric parameter "{}" of the part must not be symbolic to '
                                'export it as a CAD model'.format(key))
 

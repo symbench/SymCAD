@@ -17,12 +17,21 @@
 """Private helper module for manipulating FreeCAD models."""
 
 from __future__ import annotations
-from typing import Callable, Dict, List, Literal, Tuple, Union
+from typing import Any, Callable, Dict, List, Literal, Tuple, Union
 from PyFreeCAD.FreeCAD import FreeCAD, Part
 from ..Coordinate import Coordinate
 import zipfile
 
 PART_FEATURE_STRING = 'Part::Feature'
+
+def is_symbolic(val: Any) -> bool:
+   """Returns whether `val` is a symbolic parameter."""
+   try:
+      float(val)
+      return False
+   except Exception:
+      return True
+
 
 def get_free_parameters_from_model(cad_file_path: str,
                                    document: Union[FreeCAD.Document, None]) -> List[str]:
@@ -146,11 +155,11 @@ def compute_placement_point(part: Part.Solid,
       The absolute placement point of the CAD model in its local coordinate system (in `mm`).
    """
    placement_x = placement_point.x * \
-      FreeCAD.Units.Quantity(part.BoundBox.XLength, FreeCAD.Units.Length).getValueAs('mm')
+      float(FreeCAD.Units.Quantity(part.BoundBox.XLength, FreeCAD.Units.Length).getValueAs('mm'))
    placement_y = placement_point.y * \
-      FreeCAD.Units.Quantity(part.BoundBox.YLength, FreeCAD.Units.Length).getValueAs('mm')
+      float(FreeCAD.Units.Quantity(part.BoundBox.YLength, FreeCAD.Units.Length).getValueAs('mm'))
    placement_z = placement_point.z * \
-      FreeCAD.Units.Quantity(part.BoundBox.ZLength, FreeCAD.Units.Length).getValueAs('mm')
+      float(FreeCAD.Units.Quantity(part.BoundBox.ZLength, FreeCAD.Units.Length).getValueAs('mm'))
    return placement_x, placement_y, placement_z
 
 
@@ -177,19 +186,18 @@ def compute_rotation_point(part: Part.Solid,
       The rotation point of the CAD model in its FreeCAD representation format.
    """
    return FreeCAD.Vector(
-      FreeCAD.Units.Quantity(part.BoundBox.XMin, FreeCAD.Units.Length).getValueAs('mm')\
-                             + placement_point_x,
-      FreeCAD.Units.Quantity(part.BoundBox.YMin, FreeCAD.Units.Length).getValueAs('mm')\
-                             + placement_point_y
-                             + (0.5 * FreeCAD.Units.Quantity(part.BoundBox.YLength,
-                                      FreeCAD.Units.Length).getValueAs('mm')),
-      FreeCAD.Units.Quantity(part.BoundBox.ZMin, FreeCAD.Units.Length).getValueAs('mm')\
-                             + placement_point_z)
+      float(FreeCAD.Units.Quantity(part.BoundBox.XMin, FreeCAD.Units.Length).getValueAs('mm'))\
+            + placement_point_x,
+      float(FreeCAD.Units.Quantity(part.BoundBox.YMin, FreeCAD.Units.Length).getValueAs('mm'))\
+            + placement_point_y + float(0.5 * FreeCAD.Units.Quantity(part.BoundBox.YLength,
+                                        FreeCAD.Units.Length).getValueAs('mm')),
+      float(FreeCAD.Units.Quantity(part.BoundBox.ZMin, FreeCAD.Units.Length).getValueAs('mm'))\
+            + placement_point_z)
 
 
-def fetch_model_geometric_properties(model: Part.Feature,
-                                     displaced_model: Part.Feature,
-                                     material_density_kg_m3: float) -> Dict[str, float]:
+def fetch_model_physical_properties(model: Part.Feature,
+                                    displaced_model: Union[Part.Feature, None],
+                                    material_density_kg_m3: float) -> Dict[str, float]:
    """Returns all physical properties of the specified CAD model.
 
    Mass properties will be computed assuming a uniform material density as specified in
@@ -199,7 +207,7 @@ def fetch_model_geometric_properties(model: Part.Feature,
    ----------
    model : `Part.Feature`
       CAD model for which to compute the geometric properties.
-   displaced_model : `Part.Feature`
+   displaced_model : `Union[Part.Feature, None]`
       CAD model for which to compute the geometric properties assuming full displacement
       of a solid.
    material_density_kg_m3 : `float`
@@ -234,32 +242,32 @@ def fetch_model_geometric_properties(model: Part.Feature,
       'cb_x': float(FreeCAD.Units.Quantity(displaced_model.CenterOfGravity[0],
                                            FreeCAD.Units.Length).getValueAs('m') -
                     FreeCAD.Units.Quantity(displaced_model.BoundBox.XMin, FreeCAD.Units.Length)
-                                 .getValueAs('m')),
+                                 .getValueAs('m')) if displaced_model is not None else 0.0,
       'cb_y': float(FreeCAD.Units.Quantity(displaced_model.CenterOfGravity[1],
                                            FreeCAD.Units.Length).getValueAs('m') -
                     FreeCAD.Units.Quantity(displaced_model.BoundBox.YMin, FreeCAD.Units.Length)
                                  .getValueAs('m') -
                     FreeCAD.Units.Quantity(displaced_model.BoundBox.YLength, FreeCAD.Units.Length)
-                                 .getValueAs('m') * 0.5),
+                                 .getValueAs('m') * 0.5) if displaced_model is not None else 0.0,
       'cb_z': float(FreeCAD.Units.Quantity(displaced_model.CenterOfGravity[2],
                                            FreeCAD.Units.Length).getValueAs('m') -
                     FreeCAD.Units.Quantity(displaced_model.BoundBox.ZMin, FreeCAD.Units.Length)
-                                 .getValueAs('m')),
+                                 .getValueAs('m')) if displaced_model is not None else 0.0,
       'mass': float(FreeCAD.Units.Quantity(model.Volume, FreeCAD.Units.Volume)
                                  .getValueAs('m^3') * material_density_kg_m3),
       'material_volume': float(FreeCAD.Units.Quantity(model.Volume, FreeCAD.Units.Volume)
                                  .getValueAs('m^3')),
       'displaced_volume': float(FreeCAD.Units.Quantity(displaced_model.Volume,
                                                          FreeCAD.Units.Volume)
-                                 .getValueAs('m^3')),
+                                 .getValueAs('m^3')) if displaced_model is not None else 0.0,
       'surface_area': float(FreeCAD.Units.Quantity(displaced_model.Area, FreeCAD.Units.Area)
-                                 .getValueAs('m^2'))
+                                 .getValueAs('m^2')) if displaced_model is not None else 0.0
    }
 
 
-def fetch_assembly_geometric_properties(assembly: FreeCAD.Document,
-                                        displaced: FreeCAD.Document,
-                                        material_densities: Dict[str, float]) -> Dict[str, float]:
+def fetch_assembly_physical_properties(assembly: FreeCAD.Document,
+                                       displaced: FreeCAD.Document,
+                                       material_densities: Dict[str, float]) -> Dict[str, float]:
    """Returns all physical properties of the specified CAD assembly.
 
    Mass properties will be computed assuming each constituent part has a uniform material density
@@ -280,8 +288,43 @@ def fetch_assembly_geometric_properties(assembly: FreeCAD.Document,
    `Dict[str, float]`
       A dictionary containing all physical properties of the underlying CAD assembly.
    """
-   # TODO: Implement this
-   raise NotImplementedError('TODO')
+   xlen_min = ylen_min = zlen_min = 100000000.0
+   xlen_max = ylen_max = zlen_max = -100000000.0
+   props = { 'xlen': 0.0, 'ylen': 0.0, 'zlen': 0.0,
+             'cg_x': 0.0, 'cg_y': 0.0, 'cg_z': 0.0, 'cb_x': 0.0, 'cb_y': 0.0, 'cb_z': 0.0,
+             'mass': 0.0, 'material_volume': 0.0, 'displaced_volume': 0.0, 'surface_area': 0.0 }
+   for part in assembly.Objects:
+      displaced_part = [obj for obj in displaced.Objects if obj.Label == part.Label]
+      displaced_part = None if not displaced_part else displaced_part[0]
+      part_props = fetch_model_physical_properties(part,
+                                                   displaced_part,
+                                                   material_densities[part.Label])
+      props['cg_x'] += (part_props['cg_x'] * part_props['mass'])
+      props['cg_y'] += (part_props['cg_y'] * part_props['mass'])
+      props['cg_z'] += (part_props['cg_z'] * part_props['mass'])
+      props['cb_x'] += (part_props['cb_x'] * part_props['displaced_volume'])
+      props['cb_y'] += (part_props['cb_y'] * part_props['displaced_volume'])
+      props['cb_z'] += (part_props['cb_z'] * part_props['displaced_volume'])
+      props['mass'] += part_props['mass']
+      props['material_volume'] += part_props['material_volume']
+      props['displaced_volume'] += part_props['displaced_volume']
+      props['surface_area'] += part_props['surface_area']
+      xlen_min = min(xlen_min, part.BoundBox.XMin)
+      ylen_min = min(ylen_min, part.BoundBox.YMin)
+      zlen_min = min(zlen_min, part.BoundBox.ZMin)
+      xlen_max = max(xlen_max, part.BoundBox.XMax)
+      ylen_max = max(ylen_max, part.BoundBox.YMax)
+      zlen_max = max(zlen_max, part.BoundBox.ZMax)
+   props['xlen'] = xlen_max - xlen_min
+   props['ylen'] = ylen_max - ylen_min
+   props['zlen'] = zlen_max - zlen_min
+   props['cg_x'] /= props['mass']
+   props['cg_y'] /= props['mass']
+   props['cg_z'] /= props['mass']
+   props['cb_x'] /= props['displaced_volume']
+   props['cb_y'] /= props['displaced_volume']
+   props['cb_z'] /= props['displaced_volume']
+   return props
 
 
 def save_model(file_path: str,

@@ -62,6 +62,31 @@ if __name__ == '__main__':
    assert cloned_coordinate != concrete_coordinate
    assert cloned_coordinate == symbolic_coordinate
 
+   # Test cloning concrete coordinates with a concrete value dictionary
+   concrete_values = {'x': 4.0, 'y': 5.0, 'symbolic_z': 6.0}
+   cloned_coordinate = concrete_coordinate.clone(concrete_values)
+   assert cloned_coordinate.name == concrete_coordinate.name
+   assert isinstance(cloned_coordinate.x, float)
+   assert isinstance(cloned_coordinate.y, float)
+   assert isinstance(cloned_coordinate.z, float)
+   assert cloned_coordinate.x == 1.0
+   assert cloned_coordinate.y == 2.0
+   assert cloned_coordinate.z == 3.0
+   assert cloned_coordinate == concrete_coordinate
+   assert cloned_coordinate != symbolic_coordinate
+
+   # Test cloning symbolic coordinates with a concrete value dictionary
+   cloned_coordinate = symbolic_coordinate.clone(concrete_values)
+   assert cloned_coordinate.name == symbolic_coordinate.name
+   assert isinstance(cloned_coordinate.x, Expr)
+   assert isinstance(cloned_coordinate.y, Expr)
+   assert isinstance(cloned_coordinate.z, Expr)
+   assert cloned_coordinate.x == 4.0
+   assert cloned_coordinate.y == 5.0
+   assert cloned_coordinate.z == 6.0
+   assert cloned_coordinate != concrete_coordinate
+   assert cloned_coordinate != symbolic_coordinate
+
    # Test cloning concrete coordinates using the copy library
    cloned_coordinate = deepcopy(concrete_coordinate)
    assert cloned_coordinate.name == concrete_coordinate.name
