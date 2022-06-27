@@ -15,45 +15,131 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
-from typing import Optional, Tuple, Union
+from PyFreeCAD.FreeCAD import FreeCAD, Part
+from typing import Dict, Optional, Tuple, Union
+from ...core.Coordinate import Coordinate
 from . import EndcapShape
-import sympy
+from sympy import Symbol
+import math
 
 class Semiellipsoid(EndcapShape):
+   """Model representing a hollow, parametric, semiellipsoidal endcap.
+
+   By default, the endcap is oriented such that its base is perpendicular to the z-axis:
+
+   ![Semiellipsoid](https://symbench.github.io/SymCAD/images/Semiellipsoid.png)
+
+   The minor axis of this shape spans the open face of the endcap to its tip, while the major
+   axis spans the radius of the open face itself.
+
+   The `geometry` of this shape includes the following parameters:
+
+   - `major_radius`: Major radius (in `m`) of the Semiellipsoid along the x- and y-axis
+   - `minor_radius`: Minor radius (in `m`) of the Semiellipsoid along the z-axis
+   - `thickness`: Thickness (in `m`) of the shell of the Semiellipsoid
+
+   Note that the above dimensions should be interpreted as if the Semiellipsoid is unrotated.
+   In other words, any shape rotation takes place *after* the Semiellipsoid dimensions have been
+   specified.
+   """
 
    # Constructor ----------------------------------------------------------------------------------
 
    def __init__(self, identifier: str,
                       material_density_kg_m3: Optional[float] = 1.0,
-                      minor_major_axis_ratio: Optional[float] = 2.0) -> None:
-      super().__init__(identifier, 'Semiellipsoid.FCStd', material_density_kg_m3)
-      setattr(self.geometry, 'axis_ratio', minor_major_axis_ratio)
-      setattr(self.geometry, 'radius_major', sympy.Symbol(self.name + '_radius_major'))
-      setattr(self.geometry, 'radius_minor', sympy.Symbol(self.name + '_radius_minor'))
-      setattr(self.geometry, 'thickness', sympy.Symbol(self.name + '_thickness'))
+                      major_minor_axis_ratio: Optional[float] = 2.0,
+                      minor_depends_on_major: bool = True) -> None:
+      """Initializes a hollow, parametric, ellipsoidal endcap object.
+
+      The `major_minor_axis_ratio` and `minor_depends_on_major` parameters are used to determine
+      the relative axis lengths of the Semiellipsoid when one or more of its geometric parameters
+      are symbolic. If all parameters are concretely defined, then these parameters are
+      meaningless.
+
+      The minor axis of this shape spans the open face of the endcap to its tip, while the major
+      axis spans the radius of the open face itself.
+
+      Parameters
+      ----------
+      identifier : `str`
+         Unique identifying name for the object.
+      material_density_kg_m3 : `float`, optional, default=1.0
+         Uniform material density in `kg/m^3` to be used in mass property calculations.
+      major_minor_axis_ratio : `float`, optional, default=2.0
+         Desired major-to-minor axis ratio of the semiellipsoid.
+      minor_depends_on_major : `bool`, optional, default=True
+         Whether the radius of the minor axis depends on the major axis or vice versa.
+      """
+      super().__init__(identifier, self.__create_cad__, material_density_kg_m3)
+      setattr(self.geometry, 'major_radius', Symbol(self.name + '_major_radius'))
+      setattr(self.geometry, 'minor_radius', Symbol(self.name + '_minor_radius'))
+      setattr(self.geometry, 'thickness', Symbol(self.name + '_thickness'))
+      self.set_geometry(major_axis_radius_m=None,
+                        minor_axis_radius_m=None,
+                        thickness_m=None,
+                        major_minor_axis_ratio=major_minor_axis_ratio,
+                        minor_depends_on_major=minor_depends_on_major)
+
+
+   # CAD generation function ----------------------------------------------------------------------
+
+   @staticmethod
+   def __create_cad__(params: Dict[str, float], fully_displace: bool) -> Part.Solid:
+      """Scripted CAD generation method for a `Semiellipsoid`."""
+      doc = FreeCAD.newDocument('Temp')
+      thickness_mm = 1000.0 * params['thickness']
+      outer_major_radius_mm = 1000.0 * params['major_radius']
+      outer_minor_radius_mm = 1000.0 * params['minor_radius']
+      inner_major_radius_mm = outer_major_radius_mm - thickness_mm
+      inner_minor_radius_mm = outer_minor_radius_mm - thickness_mm
+      outer = doc.addObject('Part::Ellipsoid', 'Ellipsoid')
+      outer.Radius1 = outer_minor_radius_mm
+      outer.Radius2 = outer_major_radius_mm
+      outer.Radius3 = outer_major_radius_mm
+      outer.Angle1 = 0.0
+      if not fully_displace:
+         inner = doc.addObject('Part::Ellipsoid', 'Ellipsoid')
+         inner.Radius1 = inner_minor_radius_mm
+         inner.Radius2 = inner_major_radius_mm
+         inner.Radius3 = inner_major_radius_mm
+         inner.Angle1 = 0.0
+         doc.recompute()
+         endcap = outer.Shape.cut(inner.Shape)
+      else:
+         doc.recompute()
+         endcap = outer.Shape
+      FreeCAD.closeDocument(doc.Name)
+      return endcap
 
 
    # Geometry setter ------------------------------------------------------------------------------
 
-   def set_geometry(self, *, major_axis_length_m: Union[float, None],
+   def set_geometry(self, *, major_axis_radius_m: Union[float, None],
                              minor_axis_radius_m: Union[float, None],
                              thickness_m: Union[float, None],
-                             minor_major_axis_ratio: float = 2.0,
-                             major_depends_on_minor: bool = True) -> Semiellipsoid:
-      self.geometry.set(axis_ratio=minor_major_axis_ratio,
-                        radius_major=major_axis_length_m,
-                        radius_minor=minor_axis_radius_m,
+                             major_minor_axis_ratio: float = 2.0,
+                             minor_depends_on_major: bool = True) -> Semiellipsoid:
+      """Sets the physical geometry of the current `Semiellipsoid` object.
+
+      The `major_minor_axis_ratio` and `minor_depends_on_major` parameters are used to determine
+      the relative axis lengths of the Semiellipsoid when one or more of its geometric parameters
+      are symbolic. If all parameters are concretely defined, then these parameters are
+      meaningless.
+
+      See the `Semiellipsoid` class documentation for a description of each geometric parameter.
+      """
+      self.geometry.set(major_radius=major_axis_radius_m,
+                        minor_radius=minor_axis_radius_m,
                         thickness=thickness_m)
-      if major_axis_length_m is not None and minor_axis_radius_m is not None:
-         self.geometry.axis_ratio = minor_axis_radius_m / major_axis_length_m
-      elif major_axis_length_m is not None and minor_axis_radius_m is None:
-         self.geometry.radius_minor = self.geometry.radius_major * minor_major_axis_ratio
-      elif major_axis_length_m is None and minor_axis_radius_m is not None:
-         self.geometry.radius_major = self.geometry.radius_minor / minor_axis_radius_m
-      elif major_depends_on_minor:
-         self.geometry.radius_major = self.geometry.radius_minor / minor_axis_radius_m
-      else:
-         self.geometry.radius_minor = self.geometry.radius_major * minor_major_axis_ratio
+      if major_axis_radius_m is not None and minor_axis_radius_m is None:
+         self.geometry.minor_radius = major_axis_radius_m / major_minor_axis_ratio
+      elif major_axis_radius_m is None and minor_axis_radius_m is not None:
+         self.geometry.major_radius = minor_axis_radius_m * major_minor_axis_ratio
+      elif major_axis_radius_m is None and minor_axis_radius_m is None:
+         if minor_depends_on_major:
+            self.geometry.minor_radius = self.geometry.major_radius / major_minor_axis_ratio
+         else:
+            self.geometry.major_radius = self.geometry.minor_radius * major_minor_axis_ratio
       return self
 
 
@@ -61,40 +147,55 @@ class Semiellipsoid(EndcapShape):
 
    @property
    def mass(self) -> float:
-      return self.material_volume * self.material_density
+      return super().mass
 
    @property
    def material_volume(self) -> float:
-      pass
+      volume = self.displaced_volume
+      volume -= (2.0 * math.pi * (self.geometry.major_radius - self.geometry.thickness)**2
+                               * (self.geometry.minor_radius - self.geometry.thickness) / 3.0)
+      return volume
 
    @property
    def displaced_volume(self) -> float:
-      pass
+      return 2.0 * math.pi * self.geometry.major_radius**2 * self.geometry.minor_radius / 3.0
 
    @property
    def surface_area(self) -> float:
-      pass
-
-   @property
-   def centroid(self) -> Tuple[float, float, float]:
-      pass
+      numerator = (2.0 * (self.geometry.minor_radius * self.geometry.major_radius)**1.6) + \
+                  self.geometry.major_radius**3.2
+      return 2.0 * math.pi * (numerator / 3.0)**(1.0 / 1.6)
 
    @property
    def center_of_gravity(self) -> Tuple[float, float, float]:
-      return self.centroid
+      rotation_center = self.static_center_of_placement \
+                             if self.static_center_of_placement is not None else \
+                        Coordinate('rotation_center', x=0.0, y=0.0, z=0.0)
+      unoriented_centroid = (self.geometry.major_radius - rotation_center.x,
+                             0.0 - rotation_center.y,
+                             (((4.0 * self.geometry.minor_radius) / (3.0 * math.pi)) / 0.72)
+                              - rotation_center.z)  # TODO: This is wrong, do curve-fitting
+      return self.orientation.rotate_point(rotation_center.as_tuple(), unoriented_centroid)
 
    @property
    def center_of_buoyancy(self) -> Tuple[float, float, float]:
-      return self.centroid
+      rotation_center = self.static_center_of_placement \
+                             if self.static_center_of_placement is not None else \
+                        Coordinate('rotation_center', x=0.0, y=0.0, z=0.0)
+      unoriented_centroid = (self.geometry.major_radius - rotation_center.x,
+                             0.0 - rotation_center.y,
+                             ((3.0 * self.geometry.minor_radius) / 8.0)
+                              - rotation_center.z)
+      return self.orientation.rotate_point(rotation_center.as_tuple(), unoriented_centroid)
 
    @property
-   def length(self) -> float:
-      pass
+   def unoriented_length(self) -> float:
+      return 2.0 * self.geometry.major_radius
 
    @property
-   def width(self) -> float:
-      pass
+   def unoriented_width(self) -> float:
+      return self.unoriented_length
 
    @property
-   def height(self) -> float:
-      pass
+   def unoriented_height(self) -> float:
+      return self.geometry.minor_radius
