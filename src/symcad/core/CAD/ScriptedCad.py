@@ -148,7 +148,7 @@ class ScriptedCad(object):
          raise RuntimeError('The orientation of the part ("{}") must not be symbolic to calculate '
                             'its physical properties from CAD'.format(yaw_pitch_roll_deg))
       for key, val in concrete_parameters.items():
-         if is_symbolic(val):
+         if key != 'name' and is_symbolic(val):
             raise RuntimeError('The geometric parameter "{}" of the part must not be symbolic to '
                                'calculate its physical properties from CAD'.format(key))
 
@@ -201,7 +201,7 @@ class ScriptedCad(object):
          raise RuntimeError('The orientation of the part ("{}") must not be symbolic to export '
                             'it as a CAD model'.format(yaw_pitch_roll_deg))
       for key, val in concrete_parameters.items():
-         if is_symbolic(val):
+         if key != 'name' and is_symbolic(val):
             raise RuntimeError('The geometric parameter "{}" of the part must not be symbolic to '
                                'export it as a CAD model'.format(key))
 
