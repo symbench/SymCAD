@@ -16,19 +16,70 @@
 
 from __future__ import annotations
 from typing import Optional, Tuple, Union
+from ...core.Coordinate import Coordinate
 from . import EndcapShape
-import math, sympy
+from sympy import Symbol, sqrt, asin, cos
+import math
 
 class Torisphere(EndcapShape):
+   """Model representing a hollow, parametric, torispherical endcap.
+
+   By default, the endcap is oriented such that its base is perpendicular to the z-axis:
+
+   ![Torisphere](https://symbench.github.io/SymCAD/images/Torisphere.png)
+
+   The `geometry` of this shape includes the following parameters:
+
+   - `base_radius`: Radius (in `m`) of the base of the Torisphere
+   - `crown_ratio`: Radius (in `m`) of the tip of the Torisphere
+   - `knuckle_ratio`: Height (in `m`) of the Torisphere from base to tip
+   - `thickness`: Thickness (in `m`) of the shell of the Torisphere
+
+   ![TorisphereGeometry](https://symbench.github.io/SymCAD/images/TorisphereGeometry.png)
+
+   TODO: Talk about geometry
+
+   Note that the above dimensions should be interpreted as if the Torisphere is unrotated.
+   In other words, any shape rotation takes place *after* the Torisphere dimensions have been
+   specified.
+   """
 
    # Constructor ----------------------------------------------------------------------------------
 
    def __init__(self, identifier: str, material_density_kg_m3: Optional[float] = 1.0) -> None:
+      """Initializes a hollow, parametric,torispherical endcap object.
+
+      Parameters
+      ----------
+      identifier : `str`
+         Unique identifying name for the object.
+      material_density_kg_m3 : `float`, optional, default=1.0
+         Uniform material density in `kg/m^3` to be used in mass property calculations.
+      """
       super().__init__(identifier, 'Torisphere.FCStd', material_density_kg_m3)
-      setattr(self.geometry, 'base_radius', sympy.Symbol(self.name + '_base_radius'))
-      setattr(self.geometry, 'crown_ratio', sympy.Symbol(self.name + '_crown_ratio'))
-      setattr(self.geometry, 'knuckle_ratio', sympy.Symbol(self.name + '_knuckle_ratio'))
-      setattr(self.geometry, 'thickness', sympy.Symbol(self.name + '_thickness'))
+      setattr(self.geometry, 'base_radius', Symbol(self.name + '_base_radius'))
+      setattr(self.geometry, 'crown_ratio', Symbol(self.name + '_crown_ratio'))
+      setattr(self.geometry, 'knuckle_ratio', Symbol(self.name + '_knuckle_ratio'))
+      setattr(self.geometry, 'thickness', Symbol(self.name + '_thickness'))
+
+
+   # SymPart function overrides ------------------------------------------------------------------
+
+   def __imul__(self, value: float) -> Torisphere:
+      crown_ratio = self.geometry.crown_ratio
+      knuckle_ratio = self.geometry.knuckle_ratio
+      super().__imul__(value)
+      self.geometry.crown_ratio = crown_ratio
+      self.geometry.knuckle_ratio = knuckle_ratio
+      return self
+
+   def __itruediv__(self, value: float) -> Torisphere:
+      crown_ratio = self.geometry.crown_ratio
+      knuckle_ratio = self.geometry.knuckle_ratio
+      super().__itruediv__(value)
+      self.geometry.crown_ratio = crown_ratio
+      self.geometry.knuckle_ratio = knuckle_ratio
+      return self
 
 
    # Geometry setter ------------------------------------------------------------------------------
@@ -37,6 +88,10 @@ class Torisphere(EndcapShape):
                              thickness_m: Union[float, None],
                              crown_ratio_percent: Union[float, None] = 1.0,
                              knuckle_ratio_percent: Union[float, None] = 0.06) -> Torisphere:
+      """Sets the physical geometry of the current `Torisphere` object.
+
+      See the `Torisphere` class documentation for a description of each geometric parameter.
+      """
       if crown_ratio_percent is not None and crown_ratio_percent > 1.0:
          raise ValueError('crown_ratio_percent ({}) is not a percentage between 0.0 - 1.0'
                           .format(crown_ratio_percent))
@@ -55,52 +110,84 @@ class Torisphere(EndcapShape):
 
    @property
    def mass(self) -> float:
-      return self.material_volume * self.material_density
+      return super().mass
 
    @property
    def material_volume(self) -> float:
-      knuckle_radius = self.geometry.knuckle_ratio * self.geometry.base_radius
-      crown_radius = self.geometry.crown_ratio * self.geometry.crown_ratio
-      c = self.geometry.base_radius - knuckle_radius
-      h = crown_radius - \
-          sympy.sqrt((knuckle_radius + c - crown_radius) *
-                     (knuckle_radius - c - crown_radius))
-      return (math.pi / 3.0) * ((2.0 * h * crown_radius**2) - \
-             (((2.0 * knuckle_radius**2) + c**2 + (2.0 * knuckle_radius * crown_radius)) * (crown_radius - h)) + \
-             (3.0 * knuckle_radius**2 * c * sympy.asin((crown_radius - h) / (crown_radius - knuckle_radius))))
+      knuckle_radius = (2.0 * self.geometry.knuckle_ratio * self.geometry.base_radius) - \
+                       self.geometry.thickness
+      crown_radius = (2.0 * self.geometry.crown_ratio * self.geometry.base_radius) - \
+                     self.geometry.thickness
+      c = self.geometry.base_radius - self.geometry.thickness - knuckle_radius
+      h = crown_radius - sqrt((knuckle_radius + c - crown_radius) *
+                              (knuckle_radius - c - crown_radius))
+      volume = self.displaced_volume
+      volume -= ((math.pi / 3.0) * \
+                 ((2.0 * h * crown_radius**2) -
+                  (((2.0 * knuckle_radius**2) + c**2 +
+                    (2.0 * knuckle_radius * crown_radius)) * (crown_radius - h)) +
+                  (3.0 * knuckle_radius**2 * c *
+                         asin((crown_radius - h) / (crown_radius - knuckle_radius)))))
+      return volume
 
    @property
    def displaced_volume(self) -> float:
-      return self.material_volume
+      knuckle_radius = 2.0 * self.geometry.knuckle_ratio * self.geometry.base_radius
+      crown_radius = 2.0 * self.geometry.crown_ratio * self.geometry.base_radius
+      c = self.geometry.base_radius - knuckle_radius
+      h = crown_radius - sqrt((knuckle_radius + c - crown_radius) *
+                              (knuckle_radius - c - crown_radius))
+      return (math.pi / 3.0) * \
+             ((2.0 * h * crown_radius**2) -
+              (((2.0 * knuckle_radius**2) + c**2 +
+                (2.0 * knuckle_radius * crown_radius)) * (crown_radius - h)) +
+              (3.0 * knuckle_radius**2 * c *
+                     asin((crown_radius - h) / (crown_radius - knuckle_radius))))
 
    @property
    def surface_area(self) -> float:
-      return 0#??
-
-   @property
-   def centroid(self) -> Tuple[float, float, float]:
-      return 0.0, 0.0, self.geometry.base_radius
+      knuckle_radius = 2.0 * self.geometry.knuckle_ratio * self.geometry.base_radius
+      crown_radius = 2.0 * self.geometry.crown_ratio * self.geometry.base_radius
+      cos_alpha = cos(asin((1.0 - (2.0 * self.geometry.knuckle_ratio)) /
+                           (2.0 * (self.geometry.crown_ratio - self.geometry.knuckle_ratio))))
+      a2 = knuckle_radius * cos_alpha
+      return (4.0 * math.pi * crown_radius**2 * (1.0 - cos_alpha)) + \
+             (4.0 * math.pi * knuckle_radius *
+                  (a2 + ((self.geometry.base_radius - knuckle_radius) * asin(cos_alpha))))
 
    @property
    def center_of_gravity(self) -> Tuple[float, float, float]:
-      return self.centroid
+      rotation_center = self.static_center_of_placement \
+                             if self.static_center_of_placement is not None else \
+                        Coordinate('rotation_center', x=0.0, y=0.0, z=0.0)
+      unoriented_centroid = (self.geometry.base_radius - rotation_center.x,
+                             0.0 - rotation_center.y,
+                             (0.5 * self.unoriented_height) - rotation_center.z) # Fix the z-value
+      return self.orientation.rotate_point(rotation_center.as_tuple(), unoriented_centroid)
 
    @property
    def center_of_buoyancy(self) -> Tuple[float, float, float]:
-      return self.centroid
+      rotation_center = self.static_center_of_placement \
+                             if self.static_center_of_placement is not None else \
+                        Coordinate('rotation_center', x=0.0, y=0.0, z=0.0)
+      unoriented_centroid = (self.geometry.base_radius - rotation_center.x,
+                             0.0 - rotation_center.y,
+                             (0.375 * self.unoriented_height) - rotation_center.z) # Fix the z-value
+      # TODO: Fix this
+      return self.orientation.rotate_point(rotation_center.as_tuple(), unoriented_centroid)
 
    @property
-   def length(self) -> float:
-      knuckle_radius = self.geometry.knuckle_ratio * self.geometry.base_radius
-      crown_radius = self.geometry.crown_ratio * self.geometry.crown_ratio
+   def unoriented_length(self) -> float:
+      return 2.0 * self.geometry.base_radius
+
+   @property
+   def unoriented_width(self) -> float:
+      return self.unoriented_length
+
+   @property
+   def unoriented_height(self) -> float:
+      knuckle_radius = 2.0 * self.geometry.knuckle_ratio * self.geometry.base_radius
+      crown_radius = 2.0 * self.geometry.crown_ratio * self.geometry.base_radius
       c = self.geometry.base_radius - knuckle_radius
-      return crown_radius - sympy.sqrt((knuckle_radius + c - crown_radius) *
-                                       (knuckle_radius - c - crown_radius))
-
-   @property
-   def width(self) -> float:
-      return 2.0 * self.geometry.base_radius
-
-   @property
-   def height(self) -> float:
-      return 2.0 * self.geometry.base_radius
+      return crown_radius - sqrt((knuckle_radius + c - crown_radius) *
+                                 (knuckle_radius - c - crown_radius))
