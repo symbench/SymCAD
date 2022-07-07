@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-This module provides a namespace for shared, basic functionality of the SymCAD library.
+This module provides a namespace for all shared, basic functionality of the SymCAD library.
 
 Public classes within the module include:
 

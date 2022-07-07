@@ -30,10 +30,10 @@ class CompositeShape(SymPart, metaclass=abc.ABCMeta):
       Parameters
       ----------
       identifier : `str`
-         Unique, identifying name for the CompositeShape.
+         Unique, identifying name for the `CompositeShape`.
       cad_representation : `Union[str, Callable]`
-         Either the path to a representative CAD model for the given CompositeShape or a callable
-         method that can create such a model.
+         Either the path to a representative CAD model for the given `CompositeShape` or a
+         callable method that can create such a model.
       material_density_kg_m3 : `float`
          Uniform material density in `kg/m^3` to be used in mass property calculations.
       """
