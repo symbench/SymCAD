@@ -17,7 +17,6 @@
 from __future__ import annotations
 from typing import Callable, Dict, Literal, Optional, Tuple
 from PyFreeCAD.FreeCAD import FreeCAD, Part
-from ..Coordinate import Coordinate
 from .CadGeneral import is_symbolic
 from . import CadGeneral
 from pathlib import Path
@@ -55,7 +54,7 @@ class ScriptedCad(object):
    def add_to_assembly(self, model_name: str,
                              assembly: FreeCAD.Document,
                              concrete_parameters: Dict[str, float],
-                             placement_point: Coordinate,
+                             placement_point: Tuple[float, float, float],
                              placement_m: Tuple[float, float, float],
                              yaw_pitch_roll_deg: Tuple[float, float, float],
                              fully_displace: Optional[bool] = False) -> None:
@@ -69,7 +68,7 @@ class ScriptedCad(object):
          FreeCAD assembly document to which the CAD model should be added.
       concrete_parameters : `Dict[str, float]`
          Dictionary of free variables along with their desired concrete values.
-      placement_point : `Coordinate`
+      placement_point : `Tuple[float, float, float]`
          Local coordinate (in percent length) to be used for the center of rotation and placement
          of the CAD model.
       placement_m : `Tuple[float, float, float]`
@@ -97,12 +96,7 @@ class ScriptedCad(object):
       assembly.recompute()
 
       # Properly place and orient the CAD model in the assembly
-      (placement_point_x, placement_point_y, placement_point_z) = \
-                     CadGeneral.compute_placement_point(model.Shape, placement_point)
-      rotation_point = CadGeneral.compute_rotation_point(model.Shape,
-                                                         placement_point_x,
-                                                         placement_point_y,
-                                                         placement_point_z)
+      rotation_point = CadGeneral.compute_placement_point(model.Shape, placement_point)
       placement = FreeCAD.Vector((1000.0 * placement_m[0]) - rotation_point.x,
                                  (1000.0 * placement_m[1]) - rotation_point.y,
                                  (1000.0 * placement_m[2]) - rotation_point.z)
@@ -115,6 +109,7 @@ class ScriptedCad(object):
 
 
    def get_physical_properties(self, concrete_parameters: Dict[str, float],
+                                     placement_point: Tuple[float, float, float],
                                      yaw_pitch_roll_deg: Tuple[float, float, float],
                                      material_density_kg_m3: float) -> Dict[str, float]:
       """Returns all physical properties of the CAD model.
@@ -130,6 +125,9 @@ class ScriptedCad(object):
       ----------
       concrete_parameters : `Dict[str, float]`
          Dictionary of free variables along with their desired concrete values.
+      placement_point : `Tuple[float, float, float]`
+         Local coordinate (in percent length) to be used for the center of placement
+         of the CAD model.
       yaw_pitch_roll_deg : `Tuple[float, float, float]`
          Global yaw-, pitch-, and roll-orientation in degrees of the CAD object.
       material_density_kg_m3 : `float`
@@ -156,16 +154,20 @@ class ScriptedCad(object):
       doc = FreeCAD.newDocument()
       model = doc.addObject(CadGeneral.PART_FEATURE_STRING, 'Model')
       model.Shape = self.creation_callback(concrete_parameters, False)
+      model.Shape.tessellate(TESSELATION_VALUE)
+      rotation_point = CadGeneral.compute_placement_point(model.Shape, placement_point)
+      placement = FreeCAD.Vector(-rotation_point.x, -rotation_point.y, -rotation_point.z)
       rotation = FreeCAD.Rotation(yaw_pitch_roll_deg[0],
                                   yaw_pitch_roll_deg[1],
                                   yaw_pitch_roll_deg[2])
-      model.Placement = FreeCAD.Placement(FreeCAD.Vector(), rotation)
+      model.Placement = FreeCAD.Placement(placement, rotation, rotation_point)
       model.Shape.tessellate(TESSELATION_VALUE)
 
       # Create a separate displacement model
       displaced_model = doc.addObject(CadGeneral.PART_FEATURE_STRING, 'DisplacedModel')
       displaced_model.Shape = self.creation_callback(concrete_parameters, True)
-      displaced_model.Placement = FreeCAD.Placement(FreeCAD.Vector(), rotation)
+      displaced_model.Shape.tessellate(TESSELATION_VALUE)
+      displaced_model.Placement = FreeCAD.Placement(placement, rotation, rotation_point)
       displaced_model.Shape.tessellate(TESSELATION_VALUE)
 
       # Retrieve all physical model properties
@@ -180,6 +182,7 @@ class ScriptedCad(object):
    def export_model(self, file_save_path: str,
                           model_type: Literal['freecad', 'step', 'stl'],
                           concrete_parameters: Dict[str, float],
+                          placement_point: Tuple[float, float, float],
                           yaw_pitch_roll_deg: Tuple[float, float, float]) -> None:
       """Creates a CAD model of the `SymPart` in the specified format.
 
@@ -191,6 +194,9 @@ class ScriptedCad(object):
          Format of the CAD model to export.
       concrete_parameters : `Dict[str, float]`
          Dictionary of free variables along with their desired concrete values.
+      placement_point : `Tuple[float, float, float]`
+         Local coordinate (in percent length) to be used for the center of placement
+         of the CAD model.
       yaw_pitch_roll_deg : `Tuple[float, float, float]`
          Global yaw-, pitch-, and roll-orientation in degrees of the CAD object.
       """
@@ -214,10 +220,13 @@ class ScriptedCad(object):
       doc = FreeCAD.newDocument()
       model = doc.addObject(CadGeneral.PART_FEATURE_STRING, 'Model')
       model.Shape = self.creation_callback(concrete_parameters, False)
+      model.Shape.tessellate(TESSELATION_VALUE)
+      rotation_point = CadGeneral.compute_placement_point(model.Shape, placement_point)
+      placement = FreeCAD.Vector(-rotation_point.x, -rotation_point.y, -rotation_point.z)
       rotation = FreeCAD.Rotation(yaw_pitch_roll_deg[0],
                                   yaw_pitch_roll_deg[1],
                                   yaw_pitch_roll_deg[2])
-      model.Placement = FreeCAD.Placement(FreeCAD.Vector(), rotation)
+      model.Placement = FreeCAD.Placement(placement, rotation, rotation_point)
       model.Shape.tessellate(TESSELATION_VALUE)
       doc.recompute()
 

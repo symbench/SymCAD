@@ -16,10 +16,9 @@
 
 from __future__ import annotations
 from PyFreeCAD.FreeCAD import Part
-from typing import Dict, Optional, Tuple, Union
-from ...core.Coordinate import Coordinate
+from typing import Dict, List, Optional, Tuple, Union
+from sympy import Expr, Symbol, sqrt
 from . import GenericShape
-from sympy import Symbol, sqrt
 import math
 
 class Cone(GenericShape):
@@ -88,53 +87,49 @@ class Cone(GenericShape):
    # Geometric properties -------------------------------------------------------------------------
 
    @property
-   def mass(self) -> float:
-      return super().mass
-
-   @property
-   def material_volume(self) -> float:
+   def material_volume(self) -> Union[float, Expr]:
       return self.displaced_volume
 
    @property
-   def displaced_volume(self) -> float:
+   def displaced_volume(self) -> Union[float, Expr]:
       return (math.pi * self.geometry.height / 3.0) * \
              (self.geometry.bottom_radius**2 + self.geometry.top_radius**2 +
               self.geometry.bottom_radius * self.geometry.top_radius)
 
    @property
-   def surface_area(self) -> float:
+   def surface_area(self) -> Union[float, Expr]:
       return (math.pi * (self.geometry.bottom_radius**2 + self.geometry.top_radius**2)) + \
              (math.pi * (self.geometry.bottom_radius + self.geometry.top_radius) *
               sqrt(self.geometry.height**2 +
                          (self.geometry.bottom_radius - self.geometry.top_radius)**2))
 
    @property
-   def center_of_gravity(self) -> Tuple[float, float, float]:
-      rotation_center = self.static_center_of_placement \
-                             if self.static_center_of_placement is not None else \
-                        Coordinate('rotation_center', x=0.0, y=0.0, z=0.0)
-      unoriented_centroid = (self.geometry.bottom_radius - rotation_center.x,
-                             0.0 - rotation_center.y,
-                             ((self.geometry.height * (self.geometry.bottom_radius**2
-                                + (2.0 * self.geometry.bottom_radius * self.geometry.top_radius)
-                                + (3.0 * self.geometry.top_radius**2))) /
-                              (4.0 * (self.geometry.bottom_radius**2
-                                + (self.geometry.bottom_radius * self.geometry.top_radius)
-                                + self.geometry.top_radius**2))) - rotation_center.z)
-      return self.orientation.rotate_point(rotation_center.as_tuple(), unoriented_centroid)
+   def unoriented_center_of_gravity(self) -> Tuple[Union[float, Expr],
+                                                   Union[float, Expr],
+                                                   Union[float, Expr]]:
+      return (self.geometry.bottom_radius,
+              self.geometry.bottom_radius,
+              (self.geometry.height * (self.geometry.bottom_radius**2
+                 + (2.0 * self.geometry.bottom_radius * self.geometry.top_radius)
+                 + (3.0 * self.geometry.top_radius**2))) /
+              (4.0 * (self.geometry.bottom_radius**2
+                 + (self.geometry.bottom_radius * self.geometry.top_radius)
+                 + self.geometry.top_radius**2)))
 
    @property
-   def center_of_buoyancy(self) -> Tuple[float, float, float]:
-      return self.center_of_gravity
+   def unoriented_center_of_buoyancy(self) -> Tuple[Union[float, Expr],
+                                                    Union[float, Expr],
+                                                    Union[float, Expr]]:
+      return self.unoriented_center_of_gravity
 
    @property
-   def unoriented_length(self) -> float:
+   def unoriented_length(self) -> Union[float, Expr]:
       return 2.0 * self.geometry.bottom_radius
 
    @property
-   def unoriented_width(self) -> float:
+   def unoriented_width(self) -> Union[float, Expr]:
       return self.unoriented_length
 
    @property
-   def unoriented_height(self) -> float:
+   def unoriented_height(self) -> Union[float, Expr]:
       return self.geometry.height

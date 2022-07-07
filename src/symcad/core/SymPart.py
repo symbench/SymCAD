@@ -19,10 +19,10 @@ from .CAD import ModeledCad, ScriptedCad
 from .Coordinate import Coordinate
 from .Geometry import Geometry
 from .Rotation import Rotation
-from typing import Callable, Dict, List
-from typing import Literal, Tuple, TypeVar, Union
-from sympy import Expr, Max, Min
+from typing import Callable, Dict, List, Literal
+from typing import Tuple, TypeVar, Union
 from copy import deepcopy
+from sympy import Expr
 import abc
 
 SymPartSub = TypeVar('SymPartSub', bound='SymPart')
@@ -75,12 +75,8 @@ class SymPart(metaclass=abc.ABCMeta):
    connections: Dict[str, str]
    """Dictionary of SymParts and connection ports that are flexibly connected to this SymPart."""
 
-   static_center_of_placement: Union[Coordinate, None]
+   static_origin: Union[Coordinate, None]
    """Local point on the unoriented SymPart that is used for static placement and rotation."""
-
-   # TODO: placement_point_offset: float
-   #"""Scalar distance between the SymPart's placement point and an external attachment point."""
-   #Every attachment_point needs this as well
 
    static_placement: Union[Coordinate, None]
    """Global static placement of the `static_center_of_placement` of the SymPart."""
@@ -124,7 +120,7 @@ class SymPart(metaclass=abc.ABCMeta):
       self.attachments = {}
       self.connection_ports = []
       self.connections = {}
-      self.static_center_of_placement = None
+      self.static_origin = None
       self.static_placement = None
       self.orientation = Rotation(identifier + '_orientation')
       self.material_density = material_density
@@ -168,28 +164,6 @@ class SymPart(metaclass=abc.ABCMeta):
       return self
 
 
-   # Private helper methods -----------------------------------------------------------------------
-
-   def _compute_bounding_box(self) -> List[Tuple[float, float, float]]:
-      """Returns the oriented bounding box of this `SymPart` as a list of eight XYZ coordinates."""
-      bounding_box = [(0.0, 0.0, 0.0)]
-      bounding_box.append(self.orientation.rotate_point((0.0, 0.0, 0.0),
-                          (self.unoriented_length, 0.0, 0.0)))
-      bounding_box.append(self.orientation.rotate_point((0.0, 0.0, 0.0),
-                          (0.0, self.unoriented_width, 0.0)))
-      bounding_box.append(self.orientation.rotate_point((0.0, 0.0, 0.0),
-                          (self.unoriented_length, self.unoriented_width, 0.0)))
-      bounding_box.append(self.orientation.rotate_point((0.0, 0.0, 0.0),
-                          (0.0, 0.0, self.unoriented_height)))
-      bounding_box.append(self.orientation.rotate_point((0.0, 0.0, 0.0),
-                          (self.unoriented_length, 0.0, self.unoriented_height)))
-      bounding_box.append(self.orientation.rotate_point((0.0, 0.0, 0.0),
-                          (0.0, self.unoriented_width, self.unoriented_height)))
-      bounding_box.append(self.orientation.rotate_point((0.0, 0.0, 0.0),
-                          (self.unoriented_length, self.unoriented_width, self.unoriented_height)))
-      return bounding_box
-
-
    # Public methods -------------------------------------------------------------------------------
 
    def clone(self: SymPartSub) -> SymPartSub:
@@ -212,7 +186,7 @@ class SymPart(metaclass=abc.ABCMeta):
          Local XYZ point on the unoriented SymPart to be used for static placement and rotation.
          Each coordinate of the origin point should fall in the range `[0.0, 1.0]` and be relative
          to the *x-axis* length, *y-axis* width, and *z-axis* height of the SymPart with its
-         origin at the front, center, bottom of the part.
+         origin at the front, left, center of the part.
 
       Returns
       -------
@@ -278,7 +252,7 @@ class SymPart(metaclass=abc.ABCMeta):
 
       Each coordinate of the attachment point should fall in the range `[0.0, 1.0]` and be
       relative to the *x-axis* length, *y-axis* width, and *z-axis* height of the SymPart with
-      its origin at the front, center, and bottom of the part.
+      its origin at the front, left, center of the part.
 
       Parameters
       ----------
@@ -311,7 +285,7 @@ class SymPart(metaclass=abc.ABCMeta):
 
       Each coordinate of the connection port should fall in the range `[0.0, 1.0]` and be
       relative to the *x-axis* length, *y-axis* width, and *z-axis* height of the SymPart with
-      its origin at the front, center, and bottom of the part.
+      its origin at the front, left, center of the part.
 
       Parameters
       ----------
@@ -380,8 +354,8 @@ class SymPart(metaclass=abc.ABCMeta):
 
 
    def connect(self: SymPartSub, local_connection_id: str,
-                                  remote_part: SymPart,
-                                  remote_connection_id: str) -> SymPartSub:
+                                 remote_part: SymPart,
+                                 remote_connection_id: str) -> SymPartSub:
       """Creates a non-rigid connection between a local and remote connection port.
 
       Parameters
@@ -431,7 +405,11 @@ class SymPart(metaclass=abc.ABCMeta):
       `Dict[str, float]`
          A list of physical properties as calculated from the underlying CAD model.
       """
+      placement_center = self.static_center_of_placement.as_tuple() if \
+                            self.static_center_of_placement is not None else \
+                         (0.0, 0.0, 0.0)
       return self.__cad__.get_physical_properties(self.geometry.__dict__,
+                                                  placement_center,
                                                   self.orientation.as_tuple(),
                                                   self.material_density)
 
@@ -448,9 +426,13 @@ class SymPart(metaclass=abc.ABCMeta):
       export_type : {'freecad', 'step', 'stl'}
          Format of the CAD model to export.
       """
+      placement_center = self.static_center_of_placement.as_tuple() if \
+                            self.static_center_of_placement is not None else \
+                         (0.0, 0.0, 0.0)
       self.__cad__.export_model(save_path,
                                 export_type,
                                 self.geometry.__dict__,
+                                placement_center,
                                 self.orientation.as_tuple())
 
 
@@ -477,72 +459,104 @@ class SymPart(metaclass=abc.ABCMeta):
    # Abstract properties that must be overridden --------------------------------------------------
 
    @property
-   def mass(self) -> float:
+   def mass(self) -> Union[float, Expr]:
       """Mass (in `kg`) of the SymPart (read-only)."""
       return self.material_volume * self.material_density
 
    @property
    @abc.abstractmethod
-   def material_volume(self) -> float:
+   def material_volume(self) -> Union[float, Expr]:
       """Material volume (in `m^3`) of the SymPart (read-only)."""
       raise NotImplementedError
 
    @property
    @abc.abstractmethod
-   def displaced_volume(self) -> float:
+   def displaced_volume(self) -> Union[float, Expr]:
       """Displaced volume (in `m^3`) of the SymPart (read-only)."""
       raise NotImplementedError
 
    @property
    @abc.abstractmethod
-   def surface_area(self) -> float:
+   def surface_area(self) -> Union[float, Expr]:
       """Surface/wetted area (in `m^2`) of the SymPart (read-only)."""
       raise NotImplementedError
 
    @property
    @abc.abstractmethod
-   def center_of_gravity(self) -> Tuple[float, float, float]:
-      """Center of gravity (in `m`) of the oriented SymPart (read-only)."""
+   def unoriented_center_of_gravity(self) -> Tuple[Union[float, Expr],
+                                                   Union[float, Expr],
+                                                   Union[float, Expr]]:
+      """Center of gravity (in `m`) of the **unoriented** SymPart (read-only)."""
       raise NotImplementedError
 
    @property
+   def oriented_center_of_gravity(self) -> Tuple[Union[float, Expr],
+                                                 Union[float, Expr],
+                                                 Union[float, Expr]]:
+      """Center of gravity (in `m`) of the **oriented** SymPart (read-only)."""
+      origin = self.static_center_of_placement.clone() \
+                  if self.static_center_of_placement is not None else \
+               Coordinate(self.name + '_origin')
+      center_of_gravity = self.unoriented_center_of_gravity
+      center_of_gravity = [center_of_gravity[0] - (origin.x * self.unoriented_length),
+                           center_of_gravity[1] - (origin.y * self.unoriented_width),
+                           center_of_gravity[2] - (origin.z * self.unoriented_height)]
+      return self.orientation.rotate_point((0.0, 0.0, 0.0), center_of_gravity)
+
+   @property
    @abc.abstractmethod
-   def center_of_buoyancy(self) -> Tuple[float, float, float]:
-      """Center of buoyancy (in `m`) of the oriented SymPart (read-only)."""
+   def unoriented_center_of_buoyancy(self) -> Tuple[Union[float, Expr],
+                                                    Union[float, Expr],
+                                                    Union[float, Expr]]:
+      """Center of buoyancy (in `m`) of the **unoriented** SymPart (read-only)."""
       raise NotImplementedError
 
    @property
-   def oriented_length(self) -> float:
-      """X-axis length (in `m`) of the bounding box of the **oriented** SymPart (read-only)."""
-      x_coordinates = [point[0] for point in self._compute_bounding_box()]
-      return Max(*x_coordinates) - Min(*x_coordinates)
-
-   @property
-   def oriented_width(self) -> float:
-      """Y-axis width (in `m`) of the bounding box of the **oriented** SymPart (read-only)."""
-      y_coordinates = [point[1] for point in self._compute_bounding_box()]
-      return Max(*y_coordinates) - Min(*y_coordinates)
-
-   @property
-   def oriented_height(self) -> float:
-      """Z-axis height (in `m`) of the bounding box of the **oriented** SymPart (read-only)."""
-      z_coordinates = [point[2] for point in self._compute_bounding_box()]
-      return Max(*z_coordinates) - Min(*z_coordinates)
+   def oriented_center_of_buoyancy(self) -> Tuple[Union[float, Expr],
+                                                  Union[float, Expr],
+                                                  Union[float, Expr]]:
+      """Center of buoyancy (in `m`) of the **oriented** SymPart (read-only)."""
+      origin = self.static_center_of_placement.clone() \
+                  if self.static_center_of_placement is not None else \
+               Coordinate(self.name + '_origin')
+      center_of_buoyancy = self.unoriented_center_of_buoyancy
+      center_of_buoyancy = [center_of_buoyancy[0] - (origin.x * self.unoriented_length),
+                            center_of_buoyancy[1] - (origin.y * self.unoriented_width),
+                            center_of_buoyancy[2] - (origin.z * self.unoriented_height)]
+      return self.orientation.rotate_point((0.0, 0.0, 0.0), center_of_buoyancy)
 
    @property
    @abc.abstractmethod
-   def unoriented_length(self) -> float:
+   def unoriented_length(self) -> Union[float, Expr]:
       """X-axis length (in `m`) of the bounding box of the **unoriented** SymPart (read-only)."""
       raise NotImplementedError
 
    @property
    @abc.abstractmethod
-   def unoriented_width(self) -> float:
+   def unoriented_width(self) -> Union[float, Expr]:
       """Y-axis width (in `m`) of the bounding box of the **unoriented** SymPart (read-only)."""
       raise NotImplementedError
 
    @property
    @abc.abstractmethod
-   def unoriented_height(self) -> float:
+   def unoriented_height(self) -> Union[float, Expr]:
       """Z-axis height (in `m`) of the bounding box of the **unoriented** SymPart (read-only)."""
+      raise NotImplementedError
+
+   @property
+   def oriented_length(self) -> Union[float, Expr]:
+      """X-axis length (in `m`) of the bounding box of the **oriented** SymPart (read-only)."""
+      # TODO: Implement this
+      raise NotImplementedError
+
+   @property
+   def oriented_width(self) -> Union[float, Expr]:
+      """Y-axis width (in `m`) of the bounding box of the **oriented** SymPart (read-only)."""
+      # TODO: Implement this
+      raise NotImplementedError
+
+   @property
+   def oriented_height(self) -> Union[float, Expr]:
+      """Z-axis height (in `m`) of the bounding box of the **oriented** SymPart (read-only)."""
+      # TODO: Implement this
       raise NotImplementedError

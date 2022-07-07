@@ -16,9 +16,8 @@
 
 from __future__ import annotations
 from PyFreeCAD.FreeCAD import FreeCAD, Part
-from typing import Dict, Optional, Tuple, Union
-from ...core.Coordinate import Coordinate
-from sympy import Symbol, sqrt
+from typing import Dict, List, Optional, Tuple, Union
+from sympy import Expr, Symbol, sqrt
 from . import GenericShape
 import math
 
@@ -98,21 +97,17 @@ class EllipsoidalCap(GenericShape):
    # Geometric properties -------------------------------------------------------------------------
 
    @property
-   def mass(self) -> float:
-      return super().mass
-
-   @property
-   def material_volume(self) -> float:
+   def material_volume(self) -> Union[float, Expr]:
       return self.displaced_volume
 
    @property
-   def displaced_volume(self) -> float:
+   def displaced_volume(self) -> Union[float, Expr]:
       return (math.pi * self.geometry.major_radius**2 * self.geometry.height**2 *
                 ((3.0 * self.geometry.minor_radius) - self.geometry.height)) / \
              (3.0 * self.geometry.minor_radius**2)
 
    @property
-   def surface_area(self) -> float:
+   def surface_area(self) -> Union[float, Expr]:
       base_area = (math.pi * self.geometry.major_radius**2 * self.geometry.height *
                      ((2.0 * self.geometry.minor_radius) - self.geometry.height)) /\
                   self.geometry.minor_radius**2
@@ -120,10 +115,9 @@ class EllipsoidalCap(GenericShape):
       return (math.pi * (base_radius_squared + self.geometry.height**2)) + base_area
 
    @property
-   def center_of_gravity(self) -> Tuple[float, float, float]:
-      rotation_center = self.static_center_of_placement \
-                             if self.static_center_of_placement is not None else \
-                        Coordinate('rotation_center', x=0.0, y=0.0, z=0.0)
+   def unoriented_center_of_gravity(self) -> Tuple[Union[float, Expr],
+                                                   Union[float, Expr],
+                                                   Union[float, Expr]]:
       base_area = (math.pi * self.geometry.major_radius**2 * self.geometry.height *
                      ((2.0 * self.geometry.minor_radius) - self.geometry.height)) /\
                   self.geometry.minor_radius**2
@@ -131,26 +125,25 @@ class EllipsoidalCap(GenericShape):
       z_centroid = ((3.0 * ((2.0 * self.geometry.minor_radius) - self.geometry.height)**2) /
                     (4.0 * ((3.0 * self.geometry.minor_radius) - self.geometry.height))) - \
                    (self.geometry.minor_radius - self.geometry.height)
-      unoriented_centroid = (base_radius - rotation_center.x,
-                             0.0 - rotation_center.y,
-                             z_centroid - rotation_center.z)
-      return self.orientation.rotate_point(rotation_center.as_tuple(), unoriented_centroid)
+      return base_radius, base_radius, z_centroid
 
    @property
-   def center_of_buoyancy(self) -> Tuple[float, float, float]:
-      return self.center_of_gravity
+   def unoriented_center_of_buoyancy(self) -> Tuple[Union[float, Expr],
+                                                    Union[float, Expr],
+                                                    Union[float, Expr]]:
+      return self.unoriented_center_of_gravity
 
    @property
-   def unoriented_length(self) -> float:
+   def unoriented_length(self) -> Union[float, Expr]:
       base_area = (math.pi * self.geometry.major_radius**2 * self.geometry.height *
                      ((2.0 * self.geometry.minor_radius) - self.geometry.height)) /\
                   self.geometry.minor_radius**2
       return 2.0 * sqrt(base_area / math.pi)
 
    @property
-   def unoriented_width(self) -> float:
+   def unoriented_width(self) -> Union[float, Expr]:
       return self.unoriented_length
 
    @property
-   def unoriented_height(self) -> float:
+   def unoriented_height(self) -> Union[float, Expr]:
       return self.geometry.height

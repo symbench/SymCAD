@@ -15,10 +15,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
-from typing import Optional, Tuple, Union
-from ...core.Coordinate import Coordinate
+from typing import List, Optional, Tuple, Union
+from sympy import Expr, Symbol, sqrt, asin, cos
 from . import EndcapShape
-from sympy import Symbol, sqrt, asin, cos
 import math
 
 class Torisphere(EndcapShape):
@@ -109,11 +108,7 @@ class Torisphere(EndcapShape):
    # Geometric properties -------------------------------------------------------------------------
 
    @property
-   def mass(self) -> float:
-      return super().mass
-
-   @property
-   def material_volume(self) -> float:
+   def material_volume(self) -> Union[float, Expr]:
       knuckle_radius = (2.0 * self.geometry.knuckle_ratio * self.geometry.base_radius) - \
                        self.geometry.thickness
       crown_radius = (2.0 * self.geometry.crown_ratio * self.geometry.base_radius) - \
@@ -131,7 +126,7 @@ class Torisphere(EndcapShape):
       return volume
 
    @property
-   def displaced_volume(self) -> float:
+   def displaced_volume(self) -> Union[float, Expr]:
       knuckle_radius = 2.0 * self.geometry.knuckle_ratio * self.geometry.base_radius
       crown_radius = 2.0 * self.geometry.crown_ratio * self.geometry.base_radius
       c = self.geometry.base_radius - knuckle_radius
@@ -145,7 +140,7 @@ class Torisphere(EndcapShape):
                      asin((crown_radius - h) / (crown_radius - knuckle_radius))))
 
    @property
-   def surface_area(self) -> float:
+   def surface_area(self) -> Union[float, Expr]:
       knuckle_radius = 2.0 * self.geometry.knuckle_ratio * self.geometry.base_radius
       crown_radius = 2.0 * self.geometry.crown_ratio * self.geometry.base_radius
       cos_alpha = cos(asin((1.0 - (2.0 * self.geometry.knuckle_ratio)) /
@@ -156,36 +151,31 @@ class Torisphere(EndcapShape):
                   (a2 + ((self.geometry.base_radius - knuckle_radius) * asin(cos_alpha))))
 
    @property
-   def center_of_gravity(self) -> Tuple[float, float, float]:
-      rotation_center = self.static_center_of_placement \
-                             if self.static_center_of_placement is not None else \
-                        Coordinate('rotation_center', x=0.0, y=0.0, z=0.0)
-      unoriented_centroid = (self.geometry.base_radius - rotation_center.x,
-                             0.0 - rotation_center.y,
-                             (0.5 * self.unoriented_height) - rotation_center.z) # Fix the z-value
-      return self.orientation.rotate_point(rotation_center.as_tuple(), unoriented_centroid)
+   def unoriented_center_of_gravity(self) -> Tuple[Union[float, Expr],
+                                                   Union[float, Expr],
+                                                   Union[float, Expr]]:
+      return (self.geometry.base_radius,
+              self.geometry.base_radius,
+              0.5 * self.unoriented_height)  # TODO: Fix the z-value
 
    @property
-   def center_of_buoyancy(self) -> Tuple[float, float, float]:
-      rotation_center = self.static_center_of_placement \
-                             if self.static_center_of_placement is not None else \
-                        Coordinate('rotation_center', x=0.0, y=0.0, z=0.0)
-      unoriented_centroid = (self.geometry.base_radius - rotation_center.x,
-                             0.0 - rotation_center.y,
-                             (0.375 * self.unoriented_height) - rotation_center.z) # Fix the z-value
-      # TODO: Fix this
-      return self.orientation.rotate_point(rotation_center.as_tuple(), unoriented_centroid)
+   def unoriented_center_of_buoyancy(self) -> Tuple[Union[float, Expr],
+                                                    Union[float, Expr],
+                                                    Union[float, Expr]]:
+      return (self.geometry.base_radius,
+              self.geometry.base_radius,
+              0.375 * self.unoriented_height)  # TODO: Fix the z-value
 
    @property
-   def unoriented_length(self) -> float:
+   def unoriented_length(self) -> Union[float, Expr]:
       return 2.0 * self.geometry.base_radius
 
    @property
-   def unoriented_width(self) -> float:
+   def unoriented_width(self) -> Union[float, Expr]:
       return self.unoriented_length
 
    @property
-   def unoriented_height(self) -> float:
+   def unoriented_height(self) -> Union[float, Expr]:
       knuckle_radius = 2.0 * self.geometry.knuckle_ratio * self.geometry.base_radius
       crown_radius = 2.0 * self.geometry.crown_ratio * self.geometry.base_radius
       c = self.geometry.base_radius - knuckle_radius

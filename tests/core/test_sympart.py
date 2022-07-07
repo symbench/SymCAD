@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from symcad.parts.endcaps import FlangedFlatPlate
+from symcad.parts import Box, FlangedFlatPlate
 from symcad.core import SymPart
 from sympy import Expr, Symbol
 import math, os
@@ -182,14 +182,37 @@ if __name__ == '__main__':
    assert 'xlen' in props and 'ylen' in props and 'zlen' in props
    assert 'cg_x' in props and 'cg_y' in props and 'cg_z' in props
    assert 'cb_x' in props and 'cb_y' in props and 'cb_z' in props
-   assert 'mass' in props
+   assert 'min_x' in props and 'min_y' in props and 'min_z' in props
    assert 'material_volume' in props and 'displaced_volume' in props
-   assert 'surface_area' in props
+   assert 'surface_area' in props and 'mass' in props
    assert isinstance(props['xlen'], float) and isinstance(props['ylen'], float) and isinstance(props['zlen'], float)
    assert isinstance(props['cg_x'], float) and isinstance(props['cg_y'], float) and isinstance(props['cg_z'], float)
-   assert isinstance(props['mass'], float)
+   assert isinstance(props['cb_x'], float) and isinstance(props['cb_y'], float) and isinstance(props['cb_z'], float)
+   assert isinstance(props['min_x'], float) and isinstance(props['min_y'], float) and isinstance(props['min_z'], float)
    assert isinstance(props['material_volume'], float) and isinstance(props['displaced_volume'], float)
-   assert isinstance(props['surface_area'], float)
+   assert isinstance(props['surface_area'], float) and isinstance(props['mass'], float)
 
    # Test physical properties after part rotation
-   # TODO: This
+   shape = Box('test_box', 1000.0)\
+      .set_geometry(length_m=4.0, width_m=2.5, height_m=2.0, thickness_m=0.01)\
+      .set_orientation(roll_deg=45.0, pitch_deg=-10.0, yaw_deg=30.0)\
+      .set_placement(placement=(0.0, 0.0, 0.0), local_origin=(0.0, 0.0, 0.0))
+   props = shape.get_cad_physical_properties()
+   assert 'xlen' in props and 'ylen' in props and 'zlen' in props
+   assert 'min_x' in props and 'min_y' in props and 'min_z' in props
+   assert 'cg_x' in props and 'cg_y' in props and 'cg_z' in props
+   assert 'cb_x' in props and 'cb_y' in props and 'cb_z' in props and 'mass' in props
+   assert 'material_volume' in props and 'displaced_volume' in props and 'surface_area' in props
+   assert isinstance(props['xlen'], float) and isinstance(props['ylen'], float) and isinstance(props['zlen'], float)
+   assert isinstance(props['cg_x'], float) and isinstance(props['cg_y'], float) and isinstance(props['cg_z'], float)
+   assert isinstance(props['cb_x'], float) and isinstance(props['cb_y'], float) and isinstance(props['cb_z'], float)
+   assert isinstance(props['min_x'], float) and isinstance(props['min_y'], float) and isinstance(props['min_z'], float)
+   assert isinstance(props['material_volume'], float) and isinstance(props['displaced_volume'], float)
+   assert isinstance(props['surface_area'], float) and isinstance(props['mass'], float)
+   assert abs(shape.oriented_length - props['xlen']) < 0.001
+   assert abs(shape.oriented_width - props['ylen']) < 0.001
+   assert abs(shape.oriented_height - props['zlen']) < 0.001
+   assert abs(shape.material_volume - props['material_volume']) < 0.001
+   assert abs(shape.displaced_volume - props['displaced_volume']) < 0.001
+   assert abs(shape.surface_area - props['surface_area']) < 0.001
+   assert abs(shape.mass - props['mass']) < 0.001

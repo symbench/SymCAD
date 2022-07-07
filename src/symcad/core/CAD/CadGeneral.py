@@ -137,60 +137,34 @@ def assign_free_parameter_values(cad_file_path: str,
 
 
 def compute_placement_point(part: Part.Solid,
-                            placement_point: Coordinate) -> Tuple[float, float, float]:
-   """Computes the local placement point (in `mm`) on the CAD model based on the specified
-   percent-length values.
+                            origin: Tuple[float, float, float]) -> FreeCAD.Vector:
+   """Computes the global placement point (in `mm`) of the CAD model based on the specified
+   percent-length `origin` values.
 
    Parameters
    ----------
    part : `Part.Solid`
-      The CAD part on which the placement point is being computed.
-   placement_point : `Coordinate`
+      The CAD part for which the placement point is being computed.
+   origin : `Tuple[float, float, float]`
       Local coordinate (in percent length) to be used for the center of placement and rotation
       of the CAD part.
 
    Returns
    -------
    `Tuple[float, float, float]`
-      The absolute placement point of the CAD model in its local coordinate system (in `mm`).
+      The absolute placement point of the CAD model (in `mm`) in its FreeCAD representation format.
    """
-   placement_x = placement_point.x * \
+   placement_point_x = origin[0] * \
       float(FreeCAD.Units.Quantity(part.BoundBox.XLength, FreeCAD.Units.Length).getValueAs('mm'))
-   placement_y = placement_point.y * \
+   placement_point_y = origin[1] * \
       float(FreeCAD.Units.Quantity(part.BoundBox.YLength, FreeCAD.Units.Length).getValueAs('mm'))
-   placement_z = placement_point.z * \
+   placement_point_z = origin[2] * \
       float(FreeCAD.Units.Quantity(part.BoundBox.ZLength, FreeCAD.Units.Length).getValueAs('mm'))
-   return placement_x, placement_y, placement_z
-
-
-def compute_rotation_point(part: Part.Solid,
-                           placement_point_x: float,
-                           placement_point_y: float,
-                           placement_point_z: float,) -> FreeCAD.Vector:
-   """Computes the local rotation point of the CAD model.
-
-   Parameters
-   ----------
-   part : `Part.Solid`
-      The CAD part for which the rotation point is being computed.
-   placement_point_x : `float`
-      Local X-coordinate to be used for the CAD model's center of rotation and placement.
-   placement_point_y : `float`
-      Local Y-coordinate to be used for the CAD model's center of rotation and placement.
-   placement_point_z : `float`
-      Local Z-coordinate to be used for the CAD model's center of rotation and placement.
-
-   Returns
-   -------
-   `FreeCAD.Vector`
-      The rotation point of the CAD model in its FreeCAD representation format.
-   """
    return FreeCAD.Vector(
       float(FreeCAD.Units.Quantity(part.BoundBox.XMin, FreeCAD.Units.Length).getValueAs('mm'))\
             + placement_point_x,
       float(FreeCAD.Units.Quantity(part.BoundBox.YMin, FreeCAD.Units.Length).getValueAs('mm'))\
-            + placement_point_y + float(0.5 * FreeCAD.Units.Quantity(part.BoundBox.YLength,
-                                        FreeCAD.Units.Length).getValueAs('mm')),
+            + placement_point_y,
       float(FreeCAD.Units.Quantity(part.BoundBox.ZMin, FreeCAD.Units.Length).getValueAs('mm'))\
             + placement_point_z)
 
@@ -225,34 +199,27 @@ def fetch_model_physical_properties(model: Part.Feature,
                                  .getValueAs('m')),
       'zlen': float(FreeCAD.Units.Quantity(model.BoundBox.ZLength, FreeCAD.Units.Length)
                                  .getValueAs('m')),
+      'min_x': float(FreeCAD.Units.Quantity(model.BoundBox.XMin, FreeCAD.Units.Length)
+                                 .getValueAs('m')),
+      'min_y': float(FreeCAD.Units.Quantity(model.BoundBox.YMin, FreeCAD.Units.Length)
+                                 .getValueAs('m')),
+      'min_z': float(FreeCAD.Units.Quantity(model.BoundBox.ZMin, FreeCAD.Units.Length)
+                                 .getValueAs('m')),
       'cg_x': float(FreeCAD.Units.Quantity(model.CenterOfGravity[0], FreeCAD.Units.Length)
-                                 .getValueAs('m') -
-                    FreeCAD.Units.Quantity(model.BoundBox.XMin, FreeCAD.Units.Length)
                                  .getValueAs('m')),
       'cg_y': float(FreeCAD.Units.Quantity(model.CenterOfGravity[1], FreeCAD.Units.Length)
-                                 .getValueAs('m') -
-                    FreeCAD.Units.Quantity(model.BoundBox.YMin, FreeCAD.Units.Length)
-                                 .getValueAs('m') -
-                    FreeCAD.Units.Quantity(model.BoundBox.YLength, FreeCAD.Units.Length)
-                                 .getValueAs('m') * 0.5),
+                                 .getValueAs('m')),
       'cg_z': float(FreeCAD.Units.Quantity(model.CenterOfGravity[2], FreeCAD.Units.Length)
-                                 .getValueAs('m') -
-                    FreeCAD.Units.Quantity(model.BoundBox.ZMin, FreeCAD.Units.Length)
                                  .getValueAs('m')),
       'cb_x': float(FreeCAD.Units.Quantity(displaced_model.CenterOfGravity[0],
-                                           FreeCAD.Units.Length).getValueAs('m') -
-                    FreeCAD.Units.Quantity(displaced_model.BoundBox.XMin, FreeCAD.Units.Length)
-                                 .getValueAs('m')) if displaced_model is not None else 0.0,
+                                           FreeCAD.Units.Length).getValueAs('m'))
+                                           if displaced_model is not None else 0.0,
       'cb_y': float(FreeCAD.Units.Quantity(displaced_model.CenterOfGravity[1],
-                                           FreeCAD.Units.Length).getValueAs('m') -
-                    FreeCAD.Units.Quantity(displaced_model.BoundBox.YMin, FreeCAD.Units.Length)
-                                 .getValueAs('m') -
-                    FreeCAD.Units.Quantity(displaced_model.BoundBox.YLength, FreeCAD.Units.Length)
-                                 .getValueAs('m') * 0.5) if displaced_model is not None else 0.0,
+                                           FreeCAD.Units.Length).getValueAs('m'))
+                                           if displaced_model is not None else 0.0,
       'cb_z': float(FreeCAD.Units.Quantity(displaced_model.CenterOfGravity[2],
-                                           FreeCAD.Units.Length).getValueAs('m') -
-                    FreeCAD.Units.Quantity(displaced_model.BoundBox.ZMin, FreeCAD.Units.Length)
-                                 .getValueAs('m')) if displaced_model is not None else 0.0,
+                                           FreeCAD.Units.Length).getValueAs('m'))
+                                           if displaced_model is not None else 0.0,
       'mass': float(FreeCAD.Units.Quantity(model.Volume, FreeCAD.Units.Volume)
                                  .getValueAs('m^3') * material_density_kg_m3),
       'material_volume': float(FreeCAD.Units.Quantity(model.Volume, FreeCAD.Units.Volume)
@@ -296,8 +263,8 @@ def fetch_assembly_physical_properties(assembly: FreeCAD.Document,
    for part in assembly.Objects:
       displaced_part = [obj for obj in displaced.Objects if obj.Label == part.Label]
       displaced_part = None if not displaced_part else displaced_part[0]
-      part_props = fetch_model_physical_properties(part,
-                                                   displaced_part,
+      part_props = fetch_model_physical_properties(part.Shape,
+                                                   displaced_part.Shape,
                                                    material_densities[part.Label])
       props['cg_x'] += (part_props['cg_x'] * part_props['mass'])
       props['cg_y'] += (part_props['cg_y'] * part_props['mass'])
@@ -309,12 +276,24 @@ def fetch_assembly_physical_properties(assembly: FreeCAD.Document,
       props['material_volume'] += part_props['material_volume']
       props['displaced_volume'] += part_props['displaced_volume']
       props['surface_area'] += part_props['surface_area']
-      xlen_min = min(xlen_min, part.BoundBox.XMin)
-      ylen_min = min(ylen_min, part.BoundBox.YMin)
-      zlen_min = min(zlen_min, part.BoundBox.ZMin)
-      xlen_max = max(xlen_max, part.BoundBox.XMax)
-      ylen_max = max(ylen_max, part.BoundBox.YMax)
-      zlen_max = max(zlen_max, part.BoundBox.ZMax)
+      xlen_min = min(xlen_min,
+                     FreeCAD.Units.Quantity(part.Shape.BoundBox.XMin, FreeCAD.Units.Length)
+                                  .getValueAs('m'))
+      ylen_min = min(ylen_min,
+                     FreeCAD.Units.Quantity(part.Shape.BoundBox.YMin, FreeCAD.Units.Length)
+                                  .getValueAs('m'))
+      zlen_min = min(zlen_min,
+                     FreeCAD.Units.Quantity(part.Shape.BoundBox.ZMin, FreeCAD.Units.Length)
+                                  .getValueAs('m'))
+      xlen_max = max(xlen_max,
+                     FreeCAD.Units.Quantity(part.Shape.BoundBox.XMax, FreeCAD.Units.Length)
+                                  .getValueAs('m'))
+      ylen_max = max(ylen_max,
+                     FreeCAD.Units.Quantity(part.Shape.BoundBox.YMax, FreeCAD.Units.Length)
+                                  .getValueAs('m'))
+      zlen_max = max(zlen_max,
+                     FreeCAD.Units.Quantity(part.Shape.BoundBox.ZMax, FreeCAD.Units.Length)
+                                  .getValueAs('m'))
    props['xlen'] = xlen_max - xlen_min
    props['ylen'] = ylen_max - ylen_min
    props['zlen'] = zlen_max - zlen_min
