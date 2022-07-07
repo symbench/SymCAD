@@ -19,10 +19,10 @@ from PyFreeCAD.FreeCAD import FreeCAD
 from .Coordinate import Coordinate
 from .SymPart import SymPart
 from .CAD import CadGeneral
-from typing import Any, Dict, List, Literal, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Literal
+from typing import Optional, Set, Tuple, Union
 from sympy import Min, Max
 from pathlib import Path
-import math
 
 def _isfloat(num: Any) -> bool:
    """Private helper function to test if a value is float-convertible."""
@@ -473,12 +473,12 @@ class Assembly(object):
 
    @property
    def surface_area(self) -> float:
-      """Surface/wetted area (in `m^2`) of the oriented Assembly (read-only)."""
+      """Surface/wetted area (in `m^2`) of the cumulative Assembly (read-only)."""
       return sum([part.surface_area for part in self.parts if part.is_exposed])
 
    @property
-   def center_of_gravity(self) -> Tuple[float, float, float]:
-      """Center of gravity (in `m`) of the oriented Assembly (read-only)."""
+   def center_of_gravity(self) -> Coordinate:
+      """Center of gravity (in `m`) of the Assembly (read-only)."""
       assembly = self.clone()
       assembly._place_parts()
       mass, center_of_gravity_x, center_of_gravity_y, center_of_gravity_z = (0.0, 0.0, 0.0, 0.0)
@@ -493,13 +493,14 @@ class Assembly(object):
          center_of_gravity_z += ((part_placement.z + part_center_of_gravity[2])
                                  * part_mass)
          mass += part_mass
-      return (center_of_gravity_x / mass,
-              center_of_gravity_y / mass,
-              center_of_gravity_z / mass)
+      return Coordinate(assembly.name + '_center_of_gravity',
+                        x=center_of_gravity_x / mass,
+                        y=center_of_gravity_y / mass,
+                        z=center_of_gravity_z / mass)
 
    @property
-   def center_of_buoyancy(self) -> Tuple[float, float, float]:
-      """Center of buoyancy (in `m`) of the oriented Assembly (read-only)."""
+   def center_of_buoyancy(self) -> Coordinate:
+      """Center of buoyancy (in `m`) of the Assembly (read-only)."""
       assembly = self.clone()
       assembly._place_parts()
       displaced_volume = 0.0
@@ -516,13 +517,14 @@ class Assembly(object):
             center_of_buoyancy_z += ((part_placement.z + part_center_of_buoyancy[2])
                                     * part_displaced_volume)
             displaced_volume += part_displaced_volume
-      return (center_of_buoyancy_x / displaced_volume,
-              center_of_buoyancy_y / displaced_volume,
-              center_of_buoyancy_z / displaced_volume)
+      return Coordinate(assembly.name + '_center_of_buoyancy',
+                        x=center_of_buoyancy_x / displaced_volume,
+                        y=center_of_buoyancy_y / displaced_volume,
+                        z=center_of_buoyancy_z / displaced_volume)
 
    @property
    def length(self) -> float:
-      """X-axis length (in `m`) of the bounding box of the oriented Assembly (read-only)."""
+      """X-axis length (in `m`) of the bounding box of the Assembly (read-only)."""
       assembly = self.clone()
       assembly._place_parts()
       minimum_extents_list = []
@@ -533,7 +535,7 @@ class Assembly(object):
 
    @property
    def width(self) -> float:
-      """Y-axis width (in `m`) of the bounding box of the oriented Assembly (read-only)."""
+      """Y-axis width (in `m`) of the bounding box of the Assembly (read-only)."""
       assembly = self.clone()
       assembly._place_parts()
       minimum_extents_list = []
@@ -544,7 +546,7 @@ class Assembly(object):
 
    @property
    def height(self) -> float:
-      """Z-axis height (in `m`) of the bounding box of the oriented Assembly (read-only)."""
+      """Z-axis height (in `m`) of the bounding box of the Assembly (read-only)."""
       assembly = self.clone()
       assembly._place_parts()
       minimum_extents_list = []
