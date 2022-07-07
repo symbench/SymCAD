@@ -23,7 +23,7 @@ if __name__ == '__main__':
    assert len(shape.attachments) == 0
    assert len(shape.connection_ports) == 0
    assert len(shape.connections) == 0
-   assert shape.static_center_of_placement == None
+   assert shape.static_origin == None
    assert shape.static_placement == None
    assert shape.orientation.name == shape_id + '_orientation'
    assert isinstance(shape.orientation.yaw, float)
@@ -85,13 +85,13 @@ if __name__ == '__main__':
    # Test manipulating the placement, center of placement, and offset
    shape.set_placement(placement=(3.0, Symbol('manual_placement_y'), None),
                        local_origin=(Symbol('manual_x_symbol'), 1.0, 2.0))
-   assert shape.static_center_of_placement.name == shape_id + '_origin'
-   assert isinstance(shape.static_center_of_placement.x, Expr)
-   assert isinstance(shape.static_center_of_placement.y, float)
-   assert isinstance(shape.static_center_of_placement.z, float)
-   assert shape.static_center_of_placement.x == Symbol('manual_x_symbol')
-   assert shape.static_center_of_placement.y == 1.0
-   assert shape.static_center_of_placement.z == 2.0
+   assert shape.static_origin.name == shape_id + '_origin'
+   assert isinstance(shape.static_origin.x, Expr)
+   assert isinstance(shape.static_origin.y, float)
+   assert isinstance(shape.static_origin.z, float)
+   assert shape.static_origin.x == Symbol('manual_x_symbol')
+   assert shape.static_origin.y == 1.0
+   assert shape.static_origin.z == 2.0
    assert shape.static_placement.name == shape_id + '_placement'
    assert isinstance(shape.static_placement.x, float)
    assert isinstance(shape.static_placement.y, Expr)
@@ -209,9 +209,6 @@ if __name__ == '__main__':
    assert isinstance(props['min_x'], float) and isinstance(props['min_y'], float) and isinstance(props['min_z'], float)
    assert isinstance(props['material_volume'], float) and isinstance(props['displaced_volume'], float)
    assert isinstance(props['surface_area'], float) and isinstance(props['mass'], float)
-   assert abs(shape.oriented_length - props['xlen']) < 0.001
-   assert abs(shape.oriented_width - props['ylen']) < 0.001
-   assert abs(shape.oriented_height - props['zlen']) < 0.001
    assert abs(shape.material_volume - props['material_volume']) < 0.001
    assert abs(shape.displaced_volume - props['displaced_volume']) < 0.001
    assert abs(shape.surface_area - props['surface_area']) < 0.001

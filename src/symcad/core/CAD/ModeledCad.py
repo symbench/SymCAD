@@ -218,6 +218,7 @@ class ModeledCad(object):
          if key != 'name' and is_symbolic(val):
             raise RuntimeError('The geometric parameter "{}" of the part must not be symbolic to '
                                'calculate its physical properties from CAD'.format(key))
+      placement_point = [0.0 if is_symbolic(p) else float(p) for p in placement_point]
 
       # Concretize the CAD model if it is parametric
       doc = FreeCAD.open(self.cad_file_path)
@@ -292,6 +293,7 @@ class ModeledCad(object):
          if key != 'name' and is_symbolic(val):
             raise RuntimeError('The geometric parameter "{}" of the part must not be symbolic to '
                                'export it as a CAD model'.format(key))
+      placement_point = [0.0 if is_symbolic(p) else float(p) for p in placement_point]
 
       # Create any necessary path directories
       file_path = Path(file_save_path).absolute().resolve()

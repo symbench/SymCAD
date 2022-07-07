@@ -79,7 +79,7 @@ class SymPart(metaclass=abc.ABCMeta):
    """Local point on the unoriented SymPart that is used for static placement and rotation."""
 
    static_placement: Union[Coordinate, None]
-   """Global static placement of the `static_center_of_placement` of the SymPart."""
+   """Global static placement of the `static_origin` of the SymPart."""
 
    orientation: Rotation
    """Global orientation of the SymPart (no rotation by default)."""
@@ -196,9 +196,9 @@ class SymPart(metaclass=abc.ABCMeta):
       if self.static_placement is None:
          self.static_placement = Coordinate(self.name + '_placement')
       self.static_placement.set(x=placement[0], y=placement[1], z=placement[2])
-      if self.static_center_of_placement is None:
-         self.static_center_of_placement = Coordinate(self.name + '_origin')
-      self.static_center_of_placement.set(x=local_origin[0], y=local_origin[1], z=local_origin[2])
+      if self.static_origin is None:
+         self.static_origin = Coordinate(self.name + '_origin')
+      self.static_origin.set(x=local_origin[0], y=local_origin[1], z=local_origin[2])
       return self
 
 
@@ -405,8 +405,8 @@ class SymPart(metaclass=abc.ABCMeta):
       `Dict[str, float]`
          A list of physical properties as calculated from the underlying CAD model.
       """
-      placement_center = self.static_center_of_placement.as_tuple() if \
-                            self.static_center_of_placement is not None else \
+      placement_center = self.static_origin.as_tuple() if \
+                            self.static_origin is not None else \
                          (0.0, 0.0, 0.0)
       return self.__cad__.get_physical_properties(self.geometry.__dict__,
                                                   placement_center,
@@ -426,8 +426,8 @@ class SymPart(metaclass=abc.ABCMeta):
       export_type : {'freecad', 'step', 'stl'}
          Format of the CAD model to export.
       """
-      placement_center = self.static_center_of_placement.as_tuple() if \
-                            self.static_center_of_placement is not None else \
+      placement_center = self.static_origin.as_tuple() if \
+                            self.static_origin is not None else \
                          (0.0, 0.0, 0.0)
       self.__cad__.export_model(save_path,
                                 export_type,
@@ -494,8 +494,8 @@ class SymPart(metaclass=abc.ABCMeta):
                                                  Union[float, Expr],
                                                  Union[float, Expr]]:
       """Center of gravity (in `m`) of the **oriented** SymPart (read-only)."""
-      origin = self.static_center_of_placement.clone() \
-                  if self.static_center_of_placement is not None else \
+      origin = self.static_origin.clone() \
+                  if self.static_origin is not None else \
                Coordinate(self.name + '_origin')
       center_of_gravity = self.unoriented_center_of_gravity
       center_of_gravity = [center_of_gravity[0] - (origin.x * self.unoriented_length),
@@ -516,8 +516,8 @@ class SymPart(metaclass=abc.ABCMeta):
                                                   Union[float, Expr],
                                                   Union[float, Expr]]:
       """Center of buoyancy (in `m`) of the **oriented** SymPart (read-only)."""
-      origin = self.static_center_of_placement.clone() \
-                  if self.static_center_of_placement is not None else \
+      origin = self.static_origin.clone() \
+                  if self.static_origin is not None else \
                Coordinate(self.name + '_origin')
       center_of_buoyancy = self.unoriented_center_of_buoyancy
       center_of_buoyancy = [center_of_buoyancy[0] - (origin.x * self.unoriented_length),
