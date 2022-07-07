@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 from PyFreeCAD.FreeCAD import FreeCAD, Part
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, Optional, Tuple, Union
 from sympy import Expr, Symbol, pi, sin, tan
 from . import GenericShape
 import math

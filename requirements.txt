@@ -1,3 +1,7 @@
 numpy
 pdoc
 sympy
+#PyFreeCAD@https://symbench.github.io/PyFreeCAD/packages/PyFreeCAD-0.20.0-Windows-AMD64.tar.gz; platform_system=='Windows' and platform_machine=='AMD64'
+#PyFreeCAD@https://symbench.github.io/PyFreeCAD/packages/PyFreeCAD-0.20.0-Linux-x86_64.tar.gz; platform_system=='Linux' and platform_machine=='x86_64'
+#PyFreeCAD@https://symbench.github.io/PyFreeCAD/packages/PyFreeCAD-0.20.0-Linux-aarch64.tar.gz; platform_system=='Linux' and platform_machine=='aarch64'
+#PyFreeCAD@https://symbench.github.io/PyFreeCAD/packages/PyFreeCAD-0.20.0-Darwin-arm64.tar.gz; platform_system=='Darwin' and platform_machine=='arm64'

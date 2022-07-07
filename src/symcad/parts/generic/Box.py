@@ -16,10 +16,8 @@
 
 from __future__ import annotations
 from PyFreeCAD.FreeCAD import FreeCAD, Part
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, Optional, Tuple, Union
 from sympy import Expr, Symbol
-
-from symcad.core.Coordinate import Coordinate
 from . import GenericShape
 
 class Box(GenericShape):
