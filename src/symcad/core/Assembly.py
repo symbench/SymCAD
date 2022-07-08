@@ -20,7 +20,7 @@ from .Coordinate import Coordinate
 from .SymPart import SymPart
 from .CAD import CadGeneral
 from typing import Any, Dict, List, Literal
-from typing import Optional, Set, Tuple, Union
+from typing import Optional, Set, Union
 from sympy import Min, Max
 from pathlib import Path
 

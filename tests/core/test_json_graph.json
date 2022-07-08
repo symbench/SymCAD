@@ -1,0 +1,218 @@
+{
+   "name": "TestAssembly",
+   "parts": [
+      {
+         "name": "test_capsule1",
+         "type": "generic.Capsule",
+         "geometry": {
+            "thickness": "test_capsule1_thickness",
+            "cylinder_radius": "test_capsule1_cylinder_radius",
+            "endcap_length": "test_capsule1_endcap_length",
+            "cylinder_length": "test_capsule1_cylinder_length"
+         },
+         "material_density": 900.0,
+         "static_origin": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+         },
+         "static_placement": {
+            "x": "test_capsule1_placement_x",
+            "y": 0.0,
+            "z": "test_capsule1_placement_z"
+         },
+         "attachment_points": [
+            {
+               "name": "FrontCenter",
+               "x": 0.5,
+               "y": 0.5,
+               "z": 0.0
+            },
+            {
+               "name": "RearCenter",
+               "x": 0.5,
+               "y": 0.5,
+               "z": 1.0
+            },
+            {
+               "name": "MiddleBottom",
+               "x": 1.0,
+               "y": 0.5,
+               "z": 0.5
+            },
+            {
+               "name": "MiddleTop",
+               "x": 0.0,
+               "y": 0.5,
+               "z": 0.5
+            }
+         ],
+         "connection_ports": [
+            {
+               "name": "ElectricalPort1",
+               "x": 0.0,
+               "y": 0.5,
+               "z": 0.75
+            },
+            {
+               "name": "ElectricalPort2",
+               "x": 1.0,
+               "y": 0.5,
+               "z": 0.75
+            }
+         ],
+         "orientation": {
+            "roll": 0.0,
+            "pitch": -90.0,
+            "yaw": 0.0
+         },
+         "is_exposed": true
+      },
+      {
+         "name": "test_capsule2",
+         "type": "generic.Capsule",
+         "geometry": {
+            "thickness": 0.01,
+            "cylinder_radius": 0.6,
+            "endcap_length": 0.3,
+            "cylinder_length": 1.0
+         },
+         "material_density": 1000.0,
+         "static_origin": null,
+         "static_placement": null,
+         "attachment_points": [
+            {
+               "name": "FrontCenter",
+               "x": 0.5,
+               "y": 0.5,
+               "z": 0.0
+            },
+            {
+               "name": "RearCenter",
+               "x": 0.5,
+               "y": 0.5,
+               "z": 1.0
+            },
+            {
+               "name": "MiddleBottom",
+               "x": 1.0,
+               "y": 0.5,
+               "z": 0.5
+            },
+            {
+               "name": "MiddleTop",
+               "x": 0.0,
+               "y": 0.5,
+               "z": 0.5
+            }
+         ],
+         "connection_ports": [
+            {
+               "name": "ElectricalPort1",
+               "x": 0.0,
+               "y": 0.5,
+               "z": 0.75
+            },
+            {
+               "name": "ElectricalPort2",
+               "x": 1.0,
+               "y": 0.5,
+               "z": 0.75
+            }
+         ],
+         "orientation": {
+            "roll": "test_capsule2_orientation_roll",
+            "pitch": -90.0,
+            "yaw": "test_capsule2_orientation_yaw"
+         },
+         "is_exposed": false
+      },
+      {
+         "name": "test_capsule3",
+         "type": "generic.Capsule",
+         "geometry": {
+            "thickness": "test_capsule3_thickness",
+            "cylinder_radius": "test_capsule3_cylinder_radius",
+            "endcap_length": "test_capsule3_endcap_length",
+            "cylinder_length": "test_capsule3_cylinder_length"
+         },
+         "material_density": 1100.0,
+         "static_origin": null,
+         "static_placement": null,
+         "attachment_points": [
+            {
+               "name": "FrontCenter",
+               "x": 0.5,
+               "y": 0.5,
+               "z": 1.0
+            },
+            {
+               "name": "RearCenter",
+               "x": 0.5,
+               "y": 0.5,
+               "z": 0.0
+            },
+            {
+               "name": "MiddleBottom",
+               "x": 0.0,
+               "y": 0.5,
+               "z": 0.5
+            },
+            {
+               "name": "MiddleTop",
+               "x": 1.0,
+               "y": 0.5,
+               "z": 0.5
+            }
+         ],
+         "connection_ports": [
+            {
+               "name": "ElectricalPort1",
+               "x": 1.0,
+               "y": 0.5,
+               "z": 0.25
+            },
+            {
+               "name": "ElectricalPort2",
+               "x": 0.0,
+               "y": 0.5,
+               "z": 0.25
+            }
+         ],
+         "orientation": {
+            "roll": 0.0,
+            "pitch": 90.0,
+            "yaw": 0.0
+         },
+         "is_exposed": true
+      }
+   ],
+   "attachments": [
+      {
+         "source_node": "test_capsule1",
+         "source_attachment": "RearCenter",
+         "destination_node": "test_capsule2",
+         "destination_attachment": "FrontCenter"
+      },
+      {
+         "source_node": "test_capsule2",
+         "source_attachment": "MiddleBottom",
+         "destination_node": "test_capsule3",
+         "destination_attachment": "MiddleTop"
+      }
+   ],
+   "connections": [
+      {
+         "source_node": "test_capsule1",
+         "source_connection": "ElectricalPort1",
+         "destination_node": "test_capsule2",
+         "destination_connection": "ElectricalPort1"
+      },
+      {
+         "source_node": "test_capsule1",
+         "source_connection": "ElectricalPort2",
+         "destination_node": "test_capsule3",
+         "destination_connection": "ElectricalPort2"
+      }
+   ]
+}

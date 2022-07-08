@@ -57,7 +57,7 @@ def test_assembly_no_attachments(retain_output: bool):
    }
    assembly.make_concrete(concrete_params).export('assembly_no_attachment_dict.FCStd', 'freecad')
 
-   # Test exporting by directly assigning values to the shapes
+   # Test exporting by directly assigning values to the parts
    front_endcap.set_placement(placement=(0.08, 0.0, 0.0), local_origin=(0, 0.5, 0)).set_geometry(radius_m=0.22, thickness_m=0.08)
    center_pipe.set_placement(placement=(0.08, 0.0, 0.0), local_origin=(1, 0.5, 0)).set_geometry(radius_m=0.22, height_m=0.6, thickness_m=0.0025)
    rear_endcap.set_placement(placement=(0.68, 0.0, 0.0), local_origin=(1, 0.5, 0)).set_geometry(radius_m=0.22, thickness_m=0.08)
@@ -118,7 +118,7 @@ def test_assembly_some_attachments(retain_output: bool):
    }
    assembly.make_concrete(concrete_params).export('assembly_some_attachments_dict.FCStd', 'freecad')
 
-   # Test exporting by directly assigning values to the shapes
+   # Test exporting by directly assigning values to the parts
    front_endcap.set_geometry(radius_m=0.22, thickness_m=0.08)
    center_pipe.set_placement(placement=(0.08, 0.0, 0.0), local_origin=(1, 0.5, 0)).set_geometry(radius_m=0.22, height_m=0.6, thickness_m=0.0025)
    rear_endcap.set_geometry(radius_m=0.22, thickness_m=0.08)
@@ -183,7 +183,7 @@ def test_assembly_all_attachments(retain_output: bool):
    }
    assembly.make_concrete(concrete_params).export('assembly_full_attachments_dict.FCStd', 'freecad')
 
-   # Test exporting by directly assigning values to the shapes
+   # Test exporting by directly assigning values to the parts
    center_pipe.set_placement(placement=(0.08, 0.0, 0.0), local_origin=(1, 0.5, 0)).set_geometry(radius_m=0.22, height_m=0.6, thickness_m=0.0025)
    front_endcap.set_geometry(radius_m=0.22, thickness_m=0.08)
    rear_endcap.set_geometry(radius_m=0.22, thickness_m=0.08)

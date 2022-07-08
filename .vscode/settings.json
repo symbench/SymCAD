@@ -3,6 +3,13 @@
     "files.exclude": {
         "**/__pycache__": true,
         "**/.eggs": true,
-        "**/*.egg-info": true
+        "**/*.egg-info": true,
+        "**/.github": true
+    },
+    "explicitFolding.rules": {
+        "*": {
+            "begin": "#!",
+            "end": "# along"
+        }
     }
 }
