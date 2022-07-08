@@ -28,7 +28,7 @@ class ModeledCad(object):
    # Public attributes ----------------------------------------------------------------------------
 
    CAD_BASE_PATH_LEN: ClassVar[int] = 1 + \
-            len(str(Path(__file__).parent.joinpath('..', '..', '..', 'cad').absolute().resolve()))
+            len(str(Path(__file__).parent.joinpath('..', '..', 'cadmodels').absolute().resolve()))
    """Number of characters in the local machine's base path containing all built-in CAD models."""
 
    cad_file_path: str
@@ -69,7 +69,7 @@ class ModeledCad(object):
          # Update the target CAD file paths
          file_path = Path(cad_file_name).absolute().resolve()
          cad_file_name = Path('converted').joinpath(Path(cad_file_name).stem + '.FCStd')
-         cad_file_path = Path(__file__).parent.joinpath('..', '..', '..', 'cad', cad_file_name)\
+         cad_file_path = Path(__file__).parent.joinpath('..', '..', 'cadmodels', cad_file_name)\
                                               .absolute().resolve()
          if not cad_file_path.exists():
 
@@ -96,7 +96,7 @@ class ModeledCad(object):
 
       # Store the absolute CAD file path
       self.cad_file_path = str(Path(__file__).parent
-                               .joinpath('..', '..', '..', 'cad', cad_file_name)
+                               .joinpath('..', '..', 'cadmodels', cad_file_name)
                                .absolute().resolve())
 
 

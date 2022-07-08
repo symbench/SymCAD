@@ -1,9 +1,5 @@
-import platform, re
-from pathlib import Path
+import platform
 from setuptools import setup
-
-VERSION = re.search(r'__version__ = \'(.+?)\'',
-                    (Path(__file__).parent / "src" / "symcad" / "__init__.py").read_text("utf8")).group(1)
 
 install_deps = []
 with open('requirements.txt') as file:
@@ -15,7 +11,4 @@ with open('requirements.txt') as file:
       else:
          install_deps.append(line)
 
-setup(
-   version=VERSION,
-   install_requires=install_deps
-)
+setup(install_requires=install_deps)

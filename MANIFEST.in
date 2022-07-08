@@ -1,0 +1,2 @@
+recursive-include src/symcad/cadmodels *.FCStd
+global-exclude *.py[co]
