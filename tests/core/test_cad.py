@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 from symcad.core.CAD import ModeledCad, ScriptedCad
-from symcad.core.Coordinate import Coordinate
 from symcad.parts import Custom, Torisphere, Pipe
 from PyFreeCAD.FreeCAD import FreeCAD, Part
 from typing import Callable, Dict
