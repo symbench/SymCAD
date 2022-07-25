@@ -431,7 +431,7 @@ class MyCustomBox(SymPart):
       setattr(self.geometry, 'width', Symbol(self.name + '_width'))
       setattr(self.geometry, 'height', Symbol(self.name + '_height'))
       setattr(self.geometry, 'thickness', Symbol(self.name + '_thickness'))
-      
+
    @staticmethod
    def __create_cad__(params: Dict[str, float], fully_displace: bool) -> Part.Solid:
       thickness_mm = 1000.0 * params['thickness']
@@ -548,6 +548,11 @@ TODO
 ## ... create an assembly using Assembly-by-Attachment?
 
 TODO
+
+
+## ... access properties of subsets of parts in an Assembly?
+
+TODO: Use "collections" in Assembly
 
 
 ## ... load concrete values for the free parameters in an assembly?
