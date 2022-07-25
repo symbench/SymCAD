@@ -197,4 +197,4 @@ def run_cad_tests(delete_cad_models: bool):
 
 if __name__ == '__main__':
 
-   run_cad_tests(False)
+   run_cad_tests(True)

@@ -47,12 +47,12 @@ class Geometry(object):
             return False
       return True
 
-   def __copy__(self):
+   def __copy__(self) -> Geometry:
       copy = self.__class__.__new__(self.__class__)
       copy.__dict__.update(self.__dict__)
       return copy
 
-   def __deepcopy__(self, memo):
+   def __deepcopy__(self, memo) -> Geometry:
       copy = self.__class__.__new__(self.__class__)
       memo[id(self)] = copy
       for key, val in self.__dict__.items():

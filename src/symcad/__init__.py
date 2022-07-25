@@ -480,8 +480,8 @@ def unoriented_height(self) -> Union[float, Expr]:
 ## ... create a new modeled SymCAD part?
 
 A *modeled SymCAD part* is a part whose CAD representation is pre-created by the user in the
-FreeCAD format and stored in the `src/cad/[X]` directory (where `X` is the directory or directory
-tree to which the CAD model belongs).
+FreeCAD format and stored in the `src/symcad/cadmodels/[X]` directory (where `X` is the directory
+or directory tree to which the CAD model belongs).
 
 Any type of CAD model internal structure is supported; however a number of conventions must be
 satisfied:

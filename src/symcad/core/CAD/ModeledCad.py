@@ -20,7 +20,8 @@ from PyFreeCAD.FreeCAD import FreeCAD, Mesh, Part
 from .CadGeneral import is_symbolic
 from . import CadGeneral
 from pathlib import Path
-from sympy import Expr
+
+TESSELATION_VALUE = 1.0
 
 class ModeledCad(object):
    """Private helper class to connect a `SymPart` to an existing CAD representation."""
@@ -160,7 +161,7 @@ class ModeledCad(object):
       # Create and add a new CAD model to the assembly
       cad_object = assembly.addObject(CadGeneral.PART_FEATURE_STRING, model_name)
       cad_object.Shape = Part.getShape(model, '', needSubElement=False, refine=False)
-      cad_object.Shape.tessellate(0.1)
+      cad_object.Shape.tessellate(TESSELATION_VALUE)
       assembly.recompute()
 
       # Properly place and orient the CAD model in the assembly
@@ -168,11 +169,9 @@ class ModeledCad(object):
       placement = FreeCAD.Vector((1000.0 * placement_m[0]) - rotation_point.x,
                                  (1000.0 * placement_m[1]) - rotation_point.y,
                                  (1000.0 * placement_m[2]) - rotation_point.z)
-      rotation = FreeCAD.Rotation(yaw_pitch_roll_deg[0],
-                                  yaw_pitch_roll_deg[1],
-                                  yaw_pitch_roll_deg[2])
+      rotation = FreeCAD.Rotation(*yaw_pitch_roll_deg)
       cad_object.Placement = FreeCAD.Placement(placement, rotation, rotation_point)
-      cad_object.Shape.tessellate(0.1)
+      cad_object.Shape.tessellate(TESSELATION_VALUE)
       assembly.recompute()
       FreeCAD.closeDocument(doc.Name)
 
@@ -236,18 +235,16 @@ class ModeledCad(object):
       # Orient and tessellate the model
       rotation_point = CadGeneral.compute_placement_point(model.Shape, placement_point)
       placement = FreeCAD.Vector(-rotation_point.x, -rotation_point.y, -rotation_point.z)
-      rotation = FreeCAD.Rotation(yaw_pitch_roll_deg[0],
-                                  yaw_pitch_roll_deg[1],
-                                  yaw_pitch_roll_deg[2])
+      rotation = FreeCAD.Rotation(*yaw_pitch_roll_deg)
       model.Placement = FreeCAD.Placement(placement, rotation, rotation_point)
-      model.Shape.tessellate(0.1)
+      model.Shape.tessellate(TESSELATION_VALUE)
       doc.recompute()
 
       # Determine if the SymPart contains a separate displacement model
       if len(doc.getObjectsByLabel('DisplacedModel')) > 0:
          displaced_model = doc.getObjectsByLabel('DisplacedModel')[0]
          displaced_model.Placement = FreeCAD.Placement(placement, rotation, rotation_point)
-         displaced_model.Shape.tessellate(0.1)
+         displaced_model.Shape.tessellate(TESSELATION_VALUE)
          doc.recompute()
          displaced_model = displaced_model.Shape
       else:
@@ -308,11 +305,9 @@ class ModeledCad(object):
       model = doc.getObjectsByLabel('Model')[0]
       rotation_point = CadGeneral.compute_placement_point(model.Shape, placement_point)
       placement = FreeCAD.Vector(-rotation_point.x, -rotation_point.y, -rotation_point.z)
-      rotation = FreeCAD.Rotation(yaw_pitch_roll_deg[0],
-                                  yaw_pitch_roll_deg[1],
-                                  yaw_pitch_roll_deg[2])
+      rotation = FreeCAD.Rotation(*yaw_pitch_roll_deg)
       model.Placement = FreeCAD.Placement(placement, rotation, rotation_point)
-      model.Shape.tessellate(0.1)
+      model.Shape.tessellate(TESSELATION_VALUE)
       doc.recompute()
 
       # Create the requested CAD format of the model

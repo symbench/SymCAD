@@ -20,7 +20,6 @@ from PyFreeCAD.FreeCAD import FreeCAD, Part
 from .CadGeneral import is_symbolic
 from . import CadGeneral
 from pathlib import Path
-from sympy import Expr
 
 TESSELATION_VALUE = 1.0
 
@@ -100,9 +99,7 @@ class ScriptedCad(object):
       placement = FreeCAD.Vector((1000.0 * placement_m[0]) - rotation_point.x,
                                  (1000.0 * placement_m[1]) - rotation_point.y,
                                  (1000.0 * placement_m[2]) - rotation_point.z)
-      rotation = FreeCAD.Rotation(yaw_pitch_roll_deg[0],
-                                  yaw_pitch_roll_deg[1],
-                                  yaw_pitch_roll_deg[2])
+      rotation = FreeCAD.Rotation(*yaw_pitch_roll_deg)
       model.Placement = FreeCAD.Placement(placement, rotation, rotation_point)
       model.Shape.tessellate(TESSELATION_VALUE)
       assembly.recompute()
@@ -158,9 +155,7 @@ class ScriptedCad(object):
       model.Shape.tessellate(TESSELATION_VALUE)
       rotation_point = CadGeneral.compute_placement_point(model.Shape, placement_point)
       placement = FreeCAD.Vector(-rotation_point.x, -rotation_point.y, -rotation_point.z)
-      rotation = FreeCAD.Rotation(yaw_pitch_roll_deg[0],
-                                  yaw_pitch_roll_deg[1],
-                                  yaw_pitch_roll_deg[2])
+      rotation = FreeCAD.Rotation(*yaw_pitch_roll_deg)
       model.Placement = FreeCAD.Placement(placement, rotation, rotation_point)
       model.Shape.tessellate(TESSELATION_VALUE)
 
@@ -225,9 +220,7 @@ class ScriptedCad(object):
       model.Shape.tessellate(TESSELATION_VALUE)
       rotation_point = CadGeneral.compute_placement_point(model.Shape, placement_point)
       placement = FreeCAD.Vector(-rotation_point.x, -rotation_point.y, -rotation_point.z)
-      rotation = FreeCAD.Rotation(yaw_pitch_roll_deg[0],
-                                  yaw_pitch_roll_deg[1],
-                                  yaw_pitch_roll_deg[2])
+      rotation = FreeCAD.Rotation(*yaw_pitch_roll_deg)
       model.Placement = FreeCAD.Placement(placement, rotation, rotation_point)
       model.Shape.tessellate(TESSELATION_VALUE)
       doc.recompute()
