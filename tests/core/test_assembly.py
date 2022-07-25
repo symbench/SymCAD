@@ -236,23 +236,23 @@ def test_assembly_properties(retain_output: bool = False):
    assembly.add_part(front_endcap)
    assembly.add_part(center_pipe)
    assembly.add_part(rear_endcap)
-   assembly.add_part(sphere)
-   assembly.add_part(support)
+   assembly.add_part(sphere, ['appendages'])
+   assembly.add_part(support, ['appendages'])
 
    # Retrieve cumulative assembly properties from equations
    assembly.export('assembly.FCStd', 'freecad')
    if retain_output:
       print('\nProperties (Equation-Based):\n')
-      print('\tMass: ', assembly.mass)
-      print('\tMaterial Volume: ', assembly.material_volume)
-      print('\tDisplaced Volume: ', assembly.displaced_volume)
-      print('\tSurface Area: ', assembly.surface_area)
-      print('\tCenter of Gravity: ', assembly.center_of_gravity)
-      print('\tCenter of Buoyancy: ', assembly.center_of_buoyancy)
+      print('\tMass: ', assembly.mass())
+      print('\tMaterial Volume: ', assembly.material_volume())
+      print('\tDisplaced Volume: ', assembly.displaced_volume())
+      print('\tSurface Area: ', assembly.surface_area())
+      print('\tCenter of Gravity: ', assembly.center_of_gravity())
+      print('\tCenter of Buoyancy: ', assembly.center_of_buoyancy())
       # TODO: Length, width, and height
-      #print('\tLength: ', assembly.length)
-      #print('\tWidth: ', assembly.width)
-      #print('\tHeight: ', assembly.height)
+      #print('\tLength: ', assembly.length())
+      #print('\tWidth: ', assembly.width())
+      #print('\tHeight: ', assembly.height())
 
    # Retrieve cumulative assembly properties from CAD model
    properties = assembly.get_cad_physical_properties()
@@ -270,20 +270,66 @@ def test_assembly_properties(retain_output: bool = False):
       #print('\tHeight: ', properties['zlen'])
 
    # Verify that the equation- and CAD-based properties match
-   assert abs(properties['mass'] - assembly.mass) < 5.0
-   assert abs(properties['material_volume'] - assembly.material_volume) < 0.005
-   assert abs(properties['displaced_volume'] - assembly.displaced_volume) < 0.005
-   assert abs(properties['surface_area'] - assembly.surface_area)
-   assert abs(properties['cg_x'] - assembly.center_of_gravity[0]) < 0.03
-   assert abs(properties['cg_y'] - assembly.center_of_gravity[1]) < 0.001
-   assert abs(properties['cg_z'] - assembly.center_of_gravity[2]) < 0.001
-   assert abs(properties['cb_x'] - assembly.center_of_buoyancy[0]) < 0.01
-   assert abs(properties['cb_y'] - assembly.center_of_buoyancy[1]) < 0.001
-   assert abs(properties['cb_z'] - assembly.center_of_buoyancy[2]) < 0.001
+   assert abs(properties['mass'] - assembly.mass()) < 5.0
+   assert abs(properties['material_volume'] - assembly.material_volume()) < 0.005
+   assert abs(properties['displaced_volume'] - assembly.displaced_volume()) < 0.005
+   assert abs(properties['surface_area'] - assembly.surface_area())
+   assert abs(properties['cg_x'] - assembly.center_of_gravity().x) < 0.03
+   assert abs(properties['cg_y'] - assembly.center_of_gravity().y) < 0.001
+   assert abs(properties['cg_z'] - assembly.center_of_gravity().z) < 0.001
+   assert abs(properties['cb_x'] - assembly.center_of_buoyancy().x) < 0.01
+   assert abs(properties['cb_y'] - assembly.center_of_buoyancy().y) < 0.001
+   assert abs(properties['cb_z'] - assembly.center_of_buoyancy().z) < 0.001
    # TODO: Length, width, and height
-   #assert abs(properties['length'] - assembly.length)
-   #assert abs(properties['width'] - assembly.width)
-   #assert abs(properties['height'] - assembly.height)
+   #assert abs(properties['length'] - assembly.length()) < 0.001
+   #assert abs(properties['width'] - assembly.width()) < 0.001
+   #assert abs(properties['height'] - assembly.height()) < 0.001
+
+   # Retrieve cumulative assembly properties for "appendages" collection from equations
+   assembly.export('assembly.FCStd', 'freecad')
+   if retain_output:
+      print('\nProperties for "appendages" collection (Equation-Based):\n')
+      print('\tMass: ', assembly.mass(['appendages']))
+      print('\tMaterial Volume: ', assembly.material_volume(['appendages']))
+      print('\tDisplaced Volume: ', assembly.displaced_volume(['appendages']))
+      print('\tSurface Area: ', assembly.surface_area(['appendages']))
+      print('\tCenter of Gravity: ', assembly.center_of_gravity(['appendages']))
+      print('\tCenter of Buoyancy: ', assembly.center_of_buoyancy(['appendages']))
+      # TODO: Length, width, and height
+      #print('\tLength: ', assembly.length(['appendages']))
+      #print('\tWidth: ', assembly.width(['appendages']))
+      #print('\tHeight: ', assembly.height(['appendages']))
+
+   # Retrieve cumulative assembly properties from CAD model
+   properties = assembly.get_cad_physical_properties(['appendages'])
+   if retain_output:
+      print('\nProperties for "appendages" collection (CAD-Based):\n')
+      print('\tMass: ', properties['mass'])
+      print('\tMaterial Volume: ', properties['material_volume'])
+      print('\tDisplaced Volume: ', properties['displaced_volume'])
+      print('\tSurface Area: ', properties['surface_area'])
+      print('\tCenter of Gravity: ({}, {}, {})'.format(properties['cg_x'], properties['cg_y'], properties['cg_z']))
+      print('\tCenter of Buoyancy: ({}, {}, {})'.format(properties['cb_x'], properties['cb_y'], properties['cb_z']))
+      # TODO: Length, width, and height
+      #print('\tLength: ', properties['xlen'])
+      #print('\tWidth: ', properties['ylen'])
+      #print('\tHeight: ', properties['zlen'])
+
+   # Verify that the equation- and CAD-based properties match for the "appendages" collection
+   assert abs(properties['mass'] - assembly.mass(['appendages'])) < 0.001
+   assert abs(properties['material_volume'] - assembly.material_volume(['appendages'])) < 0.005
+   assert abs(properties['displaced_volume'] - assembly.displaced_volume(['appendages'])) < 0.005
+   assert abs(properties['surface_area'] - assembly.surface_area(['appendages'])) < 0.001
+   assert abs(properties['cg_x'] - assembly.center_of_gravity(['appendages']).x) < 0.03
+   assert abs(properties['cg_y'] - assembly.center_of_gravity(['appendages']).y) < 0.001
+   assert abs(properties['cg_z'] - assembly.center_of_gravity(['appendages']).z) < 0.001
+   assert abs(properties['cb_x'] - assembly.center_of_buoyancy(['appendages']).x) < 0.01
+   assert abs(properties['cb_y'] - assembly.center_of_buoyancy(['appendages']).y) < 0.001
+   assert abs(properties['cb_z'] - assembly.center_of_buoyancy(['appendages']).z) < 0.001
+   # TODO: Length, width, and height
+   #assert abs(properties['length'] - assembly.length(['appendages'])) < 0.001
+   #assert abs(properties['width'] - assembly.width(['appendages'])) < 0.001
+   #assert abs(properties['height'] - assembly.height(['appendages'])) < 0.001
 
    # Clean up any newly created files
    if not retain_output:

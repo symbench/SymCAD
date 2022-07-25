@@ -20,8 +20,8 @@ from .Coordinate import Coordinate
 from .SymPart import SymPart
 from .CAD import CadGeneral
 from typing import Any, Dict, List, Literal
-from typing import Optional, Set, Union
-from sympy import Min, Max
+from typing import Optional, Set, Tuple, Union
+from collections import defaultdict
 from pathlib import Path
 
 def _isfloat(num: Any) -> bool:
@@ -51,6 +51,9 @@ class Assembly(object):
    parts: List[SymPart]
    """List of `SymPart` parts within the assembly."""
 
+   collections: Dict[str, List[str]]
+   """Dictionary of collections of `SymPart` parts that can be treated as unique assemblies."""
+
 
    # Constructor ----------------------------------------------------------------------------------
 
@@ -58,17 +61,16 @@ class Assembly(object):
       """Initializes an `Assembly` object with the specified `assembly_name`."""
       self.name = assembly_name
       self.parts = []
+      self.collections = defaultdict(list)
 
 
    # Built-in method implementations --------------------------------------------------------------
 
    def __eq__(self, other: Assembly) -> bool:
-      is_equal = False
-      for part in self.parts:
-         for part2 in other.parts:
-            if part.name == part2.name and part == part2:
-               is_equal = True
-      return self.name == other.name and is_equal
+      these_parts = {part.name: part for part in self.parts}
+      those_parts = {part.name: part for part in other.parts}
+      return self.name == other.name and these_parts == those_parts and \
+             self.collections == other.collections
 
 
    # Private helper methods -----------------------------------------------------------------------
@@ -259,7 +261,7 @@ class Assembly(object):
       return cloned
 
 
-   def add_part(self, shape: SymPart) -> None:
+   def add_part(self, shape: SymPart, include_in_collections: List[str] = []) -> None:
       """Adds a `SymPart` to the current assembly.
 
       Every part within an assembly must have a unique name or this method will fail with a
@@ -268,7 +270,9 @@ class Assembly(object):
       Parameters
       ----------
       shape : `SymPart`
-         part to add to the assembly.
+         Part to add to the assembly.
+      include_in_collections : `List[str]`, optional
+         List of collections to which to add the part.
 
       Raises
       ------
@@ -280,6 +284,8 @@ class Assembly(object):
             raise KeyError('A part with the name "{}" already exists in this assembly'
                            .format(shape.name))
       self.parts.append(shape)
+      for collection in include_in_collections:
+         self.collections[collection].append(shape.name)
 
 
    def get_free_parameters(self) -> List[str]:
@@ -366,8 +372,14 @@ class Assembly(object):
       FreeCAD.closeDocument(doc.Name)
 
 
-   def get_cad_physical_properties(self) -> Dict[str, float]:
+   def get_cad_physical_properties(self,
+                                   of_collections: Optional[List[str]] = None) -> Dict[str, float]:
       """Returns all physical properties of the Assembly as reported by the underlying CAD model.
+
+      Parameters
+      ----------
+      of_collections : `List[str]`, optional
+         List of part collections to include in the physical property retrieval results.
 
       Returns
       -------
@@ -381,26 +393,30 @@ class Assembly(object):
       assembly._place_parts()
       doc = FreeCAD.newDocument(self.name)
       displacement_doc = FreeCAD.newDocument(self.name + '_displacement')
+      valid_parts = [part.name for part in self.parts] if of_collections is None else \
+                    [part for collection_name, parts in self.collections.items()
+                     if collection_name in of_collections for part in parts]
       for part in assembly.parts:
 
-         # Ensure that the part is fully concrete, and add it to the current assembly
-         Assembly._verify_fully_concrete(part, True)
-         material_densities[part.name] = part.material_density
-         part.__cad__.add_to_assembly(part.name,
-                                      doc,
-                                      part.geometry.__dict__,
-                                      part.static_origin.as_tuple(),
-                                      part.static_placement.as_tuple(),
-                                      part.orientation.as_tuple(),
-                                      False)
-         if part.is_exposed:
+         # Ensure that the part is valid and fully concrete, and add it to the current assembly
+         if part.name in valid_parts:
+            Assembly._verify_fully_concrete(part, True)
+            material_densities[part.name] = part.material_density
             part.__cad__.add_to_assembly(part.name,
-                                       displacement_doc,
+                                       doc,
                                        part.geometry.__dict__,
                                        part.static_origin.as_tuple(),
                                        part.static_placement.as_tuple(),
                                        part.orientation.as_tuple(),
-                                       True)
+                                       False)
+            if part.is_exposed:
+               part.__cad__.add_to_assembly(part.name,
+                                          displacement_doc,
+                                          part.geometry.__dict__,
+                                          part.static_origin.as_tuple(),
+                                          part.static_placement.as_tuple(),
+                                          part.orientation.as_tuple(),
+                                          True)
 
       # Recompute and calculate the physical properties of the resulting model
       doc.recompute()
@@ -454,59 +470,80 @@ class Assembly(object):
       return import_from_json(file_path.read_text())
 
 
-   # Cumulative properties of the entire assembly -------------------------------------------------
+   # Cumulative properties of the assembly --------------------------------------------------------
 
-   @property
-   def mass(self) -> float:
-      """Mass (in `kg`) of the cumulative Assembly (read-only)."""
-      return sum([part.mass for part in self.parts])
+   def mass(self, of_collections: Optional[List[str]] = None) -> float:
+      """Mass (in `kg`) of the parts in the specified collections or of the cumulative
+      Assembly (read-only)."""
+      valid_parts = [part.name for part in self.parts] if of_collections is None else \
+                    [part for collection_name, parts in self.collections.items()
+                     if collection_name in of_collections for part in parts]
+      return sum([part.mass for part in self.parts if part.name in valid_parts])
 
-   @property
-   def material_volume(self) -> float:
-      """Material volume (in `m^3`) of the cumulative Assembly (read-only)."""
-      return sum([part.material_volume for part in self.parts])
+   def material_volume(self, of_collections: Optional[List[str]] = None) -> float:
+      """Material volume (in `m^3`) of the parts in the specified collections or of the
+      cumulative Assembly (read-only)."""
+      valid_parts = [part.name for part in self.parts] if of_collections is None else \
+                    [part for collection_name, parts in self.collections.items()
+                     if collection_name in of_collections for part in parts]
+      return sum([part.material_volume for part in self.parts if part.name in valid_parts])
 
-   @property
-   def displaced_volume(self) -> float:
-      """Displaced volume (in `m^3`) of the cumulative Assembly (read-only)."""
-      return sum([part.displaced_volume for part in self.parts if part.is_exposed])
+   def displaced_volume(self, of_collections: Optional[List[str]] = None) -> float:
+      """Displaced volume (in `m^3`) of the parts in the specified collections or of the
+      cumulative Assembly (read-only)."""
+      valid_parts = [part.name for part in self.parts] if of_collections is None else \
+                    [part for collection_name, parts in self.collections.items()
+                     if collection_name in of_collections for part in parts]
+      return sum([part.displaced_volume for part in self.parts if part.is_exposed and
+                                                                  part.name in valid_parts])
 
-   @property
-   def surface_area(self) -> float:
-      """Surface/wetted area (in `m^2`) of the cumulative Assembly (read-only)."""
-      return sum([part.surface_area for part in self.parts if part.is_exposed])
+   def surface_area(self, of_collections: Optional[List[str]] = None) -> float:
+      """Surface/wetted area (in `m^2`) of the parts in the specified collections or of the
+      cumulative Assembly (read-only)."""
+      valid_parts = [part.name for part in self.parts] if of_collections is None else \
+                    [part for collection_name, parts in self.collections.items()
+                     if collection_name in of_collections for part in parts]
+      return sum([part.surface_area for part in self.parts if part.is_exposed and
+                                                              part.name in valid_parts])
 
-   @property
-   def center_of_gravity(self) -> Coordinate:
-      """Center of gravity (in `m`) of the Assembly (read-only)."""
+   def center_of_gravity(self, of_collections: Optional[List[str]] = None) -> Coordinate:
+      """Center of gravity (in `m`) of the parts in the specified collections or of the
+      cumulative Assembly (read-only)."""
       assembly = self.clone()
       assembly._place_parts()
+      valid_parts = [part.name for part in self.parts] if of_collections is None else \
+                    [part for collection_name, parts in self.collections.items()
+                     if collection_name in of_collections for part in parts]
       mass, center_of_gravity_x, center_of_gravity_y, center_of_gravity_z = (0.0, 0.0, 0.0, 0.0)
       for part in assembly.parts:
-         part_mass = part.mass
-         part_placement = part.static_placement
-         part_center_of_gravity = part.oriented_center_of_gravity
-         center_of_gravity_x += ((part_placement.x + part_center_of_gravity[0])
-                                 * part_mass)
-         center_of_gravity_y += ((part_placement.y + part_center_of_gravity[1])
-                                 * part_mass)
-         center_of_gravity_z += ((part_placement.z + part_center_of_gravity[2])
-                                 * part_mass)
-         mass += part_mass
+         if part.name in valid_parts:
+            part_mass = part.mass
+            part_placement = part.static_placement
+            part_center_of_gravity = part.oriented_center_of_gravity
+            center_of_gravity_x += ((part_placement.x + part_center_of_gravity[0])
+                                    * part_mass)
+            center_of_gravity_y += ((part_placement.y + part_center_of_gravity[1])
+                                    * part_mass)
+            center_of_gravity_z += ((part_placement.z + part_center_of_gravity[2])
+                                    * part_mass)
+            mass += part_mass
       return Coordinate(assembly.name + '_center_of_gravity',
                         x=center_of_gravity_x / mass,
                         y=center_of_gravity_y / mass,
                         z=center_of_gravity_z / mass)
 
-   @property
-   def center_of_buoyancy(self) -> Coordinate:
-      """Center of buoyancy (in `m`) of the Assembly (read-only)."""
+   def center_of_buoyancy(self, of_collections: Optional[List[str]] = None) -> Coordinate:
+      """Center of buoyancy (in `m`) of the parts in the specified collections or of the
+      cumulative Assembly (read-only)."""
       assembly = self.clone()
       assembly._place_parts()
       displaced_volume = 0.0
+      valid_parts = [part.name for part in self.parts] if of_collections is None else \
+                    [part for collection_name, parts in self.collections.items()
+                     if collection_name in of_collections for part in parts]
       center_of_buoyancy_x, center_of_buoyancy_y, center_of_buoyancy_z = (0.0, 0.0, 0.0)
       for part in assembly.parts:
-         if part.is_exposed:
+         if part.is_exposed and part.name in valid_parts:
             part_placement = part.static_placement
             part_displaced_volume = part.displaced_volume
             part_center_of_buoyancy = part.oriented_center_of_buoyancy
@@ -522,37 +559,43 @@ class Assembly(object):
                         y=center_of_buoyancy_y / displaced_volume,
                         z=center_of_buoyancy_z / displaced_volume)
 
-   @property
-   def length(self) -> float:
-      """X-axis length (in `m`) of the bounding box of the Assembly (read-only)."""
+   def length(self, of_collections: Optional[List[str]] = None) -> float:
+      """X-axis length (in `m`) of the bounding box of the parts in the specified collections
+      or of the cumulative Assembly (read-only)."""
       assembly = self.clone()
       assembly._place_parts()
-      minimum_extents_list = []
-      maximum_extents_list = []
+      valid_parts = [part.name for part in self.parts] if of_collections is None else \
+                    [part for collection_name, parts in self.collections.items()
+                     if collection_name in of_collections for part in parts]
       for part in assembly.parts:
-         pass  # TODO: Implement this
-      return Max(*maximum_extents_list) - Min(*minimum_extents_list)
+         if part.name in valid_parts:
+            pass  # TODO: Implement this
+      return 0
 
-   @property
-   def width(self) -> float:
-      """Y-axis width (in `m`) of the bounding box of the Assembly (read-only)."""
+   def width(self, of_collections: Optional[List[str]] = None) -> float:
+      """Y-axis width (in `m`) of the bounding box of the parts in the specified collections
+      or of the cumulative Assembly (read-only)."""
       assembly = self.clone()
       assembly._place_parts()
-      minimum_extents_list = []
-      maximum_extents_list = []
+      valid_parts = [part.name for part in self.parts] if of_collections is None else \
+                    [part for collection_name, parts in self.collections.items()
+                     if collection_name in of_collections for part in parts]
       for part in assembly.parts:
-         pass  # TODO: Implement this
-      return Max(*maximum_extents_list) - Min(*minimum_extents_list)
+         if part.name in valid_parts:
+            pass  # TODO: Implement this
+      return 0
 
-   @property
-   def height(self) -> float:
-      """Z-axis height (in `m`) of the bounding box of the Assembly (read-only)."""
+   def height(self, of_collections: Optional[List[str]] = None) -> float:
+      """Z-axis height (in `m`) of the bounding box of the parts in the specified collections
+      or of the cumulative Assembly (read-only)."""
       assembly = self.clone()
       assembly._place_parts()
-      minimum_extents_list = []
-      maximum_extents_list = []
+      valid_parts = [part.name for part in self.parts] if of_collections is None else \
+                    [part for collection_name, parts in self.collections.items()
+                     if collection_name in of_collections for part in parts]
       for part in assembly.parts:
-         pass
+         if part.name in valid_parts:
+            pass  # TODO: Implement this
          #placement_center = \
          #   part._reorient_coordinate(part.static_origin.x * part.unoriented_length,
          #                             part.static_origin.y * part.unoriented_width,
@@ -560,4 +603,4 @@ class Assembly(object):
          #placement_z = part.static_placement.z - placement_center[2]
          #minimum_extents_list.append(placement_z)
          #maximum_extents_list.append(placement_z + part.oriented_height)
-      return Max(*maximum_extents_list) - Min(*minimum_extents_list)
+      return 0
