@@ -19,7 +19,6 @@
 from __future__ import annotations
 from typing import Any, Callable, Dict, List, Literal, Tuple, Union
 from PyFreeCAD.FreeCAD import FreeCAD, Part
-from ..Coordinate import Coordinate
 import zipfile
 
 PART_FEATURE_STRING = 'Part::Feature'
@@ -304,6 +303,31 @@ def fetch_assembly_physical_properties(assembly: FreeCAD.Document,
    props['cb_y'] /= props['displaced_volume']
    props['cb_z'] /= props['displaced_volume']
    return props
+
+
+def retrieve_interferences(assembly: FreeCAD.Document) -> List[Tuple[str, str]]:
+   """Retrieves a list of components within the CAD model that interfere or overlap
+   with any other contained components.
+
+   Parameters
+   ----------
+   assembly : `FreeCAD.Document`
+      CAD assembly in which to search for interfering components.
+
+   Returns
+   -------
+   `List[Tuple[str, str]]`
+      A list of tuples containing CAD components that interfere with one another.
+   """
+   interferences = []
+   for idx1, component1 in enumerate(assembly.Objects):
+      for idx2, component2 in enumerate(assembly.Objects):
+         if idx2 > idx1:
+            overlap = FreeCAD.Units.Quantity(component1.Shape.common(component2.Shape).Volume,
+                                             FreeCAD.Units.Length).getValueAs('m')
+            if overlap > 0.02:
+               interferences.append((component1.Label, component2.Label))
+   return interferences
 
 
 def save_model(file_path: str,

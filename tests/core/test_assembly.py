@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from symcad.core import Coordinate, Assembly
+from symcad.core import Assembly
 from symcad.parts.endcaps import FlangedFlatPlate
-from symcad.parts.generic import Cylinder, Pipe, Sphere
+from symcad.parts.generic import Cuboid, Cylinder, Pipe, Sphere
 import os
 
 def test_assembly_no_attachments(retain_output: bool):
@@ -330,6 +330,18 @@ def test_assembly_properties(retain_output: bool = False):
    #assert abs(properties['length'] - assembly.length(['appendages'])) < 0.001
    #assert abs(properties['width'] - assembly.width(['appendages'])) < 0.001
    #assert abs(properties['height'] - assembly.height(['appendages'])) < 0.001
+
+   # Verify that the CAD assembly contains no interferences
+   assert not assembly.check_interferences()
+
+   # Test an assembly that does contain interferences
+   front_endcap.add_attachment_point('BadAttachment', x=0.5, y=0.5, z=0.5)
+   interfering_cube = Cuboid('InterferenceCube', 1000.0)\
+      .set_geometry(length_m=0.4, width_m=0.2, height_m=0.2)\
+      .add_attachment_point('Back', x=1.0, y=0.5, z=0.5)
+   front_endcap.attach('BadAttachment', interfering_cube, 'Back')
+   assembly.add_part(interfering_cube)
+   assert assembly.check_interferences() == [('FrontEndcap', 'InterferenceCube')]
 
    # Clean up any newly created files
    if not retain_output:

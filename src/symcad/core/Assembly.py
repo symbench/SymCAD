@@ -372,6 +372,39 @@ class Assembly(object):
       FreeCAD.closeDocument(doc.Name)
 
 
+   def check_interferences(self) -> List[Tuple[str, str]]:
+      """Checks whether any of the parts contained within the Assembly interfere with any
+      other contained parts.
+
+      Returns
+      -------
+      `List[Tuple[str, str]]`
+         A list of tuples containing parts that interfere with one another.
+      """
+
+      # Create an assembly document and iterate through all CAD parts
+      assembly = self.clone()
+      assembly._place_parts()
+      doc = FreeCAD.newDocument(self.name)
+      for part in assembly.parts:
+
+         # Ensure that the part is fully concrete, and add it to the current assembly
+         Assembly._verify_fully_concrete(part, True)
+         part.__cad__.add_to_assembly(part.name,
+                                      doc,
+                                      part.geometry.__dict__,
+                                      part.static_origin.as_tuple(),
+                                      part.static_placement.as_tuple(),
+                                      part.orientation.as_tuple(),
+                                      False)
+
+      # Recompute and check for interferences in the resulting model
+      doc.recompute()
+      interferences = CadGeneral.retrieve_interferences(doc)
+      FreeCAD.closeDocument(doc.Name)
+      return interferences
+
+
    def get_cad_physical_properties(self,
                                    of_collections: Optional[List[str]] = None) -> Dict[str, float]:
       """Returns all physical properties of the Assembly as reported by the underlying CAD model.

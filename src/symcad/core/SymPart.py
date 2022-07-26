@@ -208,6 +208,11 @@ class SymPart(metaclass=abc.ABCMeta):
       """Sets the global orientation of the SymPart when rotated about its `z-`, `y-`, then
       `x-axis` (`yaw`, `pitch`, then `roll`) using a right-hand coordinate system.
 
+      A positive `roll_deg` will tilt the part to the left from the point of view of a location
+      inside the part. A positive `pitch_deg` will rotate the nose of the part downward, and a
+      positive `yaw_deg` will rotate the nose of the part toward the left from the point of view
+      of a location inside the part.
+
       Parameters
       ----------
       roll_deg : `Union[float, sympy.Expr, None]`
