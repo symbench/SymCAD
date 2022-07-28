@@ -49,6 +49,8 @@ Notable features of the library include:
     center of gravity, center of buoyancy, length, width, and height
   - [Part importation](#import-an-existing-cad-model) from existing CAD models
     (FreeCAD, STEP, or STL)
+  - [Interference detection](#detect-part-interferences-within-an-assembly) for parts within
+    an assembly
   - Easy-to-create custom parts (scripted or modeled)
   - Automatic separation of regular and displacement models
   - Parts and assemblies exportable to FreeCAD, STEP, or STL
@@ -553,6 +555,11 @@ TODO
 ## ... access properties of subsets of parts in an Assembly?
 
 TODO: Use "collections" in Assembly
+
+
+## ... detect part interferences within an Assembly?
+
+TODO
 
 
 ## ... load concrete values for the free parameters in an assembly?

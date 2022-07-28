@@ -324,7 +324,7 @@ def retrieve_interferences(assembly: FreeCAD.Document) -> List[Tuple[str, str]]:
       for idx2, component2 in enumerate(assembly.Objects):
          if idx2 > idx1:
             overlap = FreeCAD.Units.Quantity(component1.Shape.common(component2.Shape).Volume,
-                                             FreeCAD.Units.Length).getValueAs('m')
+                                             FreeCAD.Units.Volume).getValueAs('m^3')
             if overlap > 0.02:
                interferences.append((component1.Label, component2.Label))
    return interferences
