@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
 from sympy import Expr, Symbol, sqrt, asin, cos
 from . import EndcapShape
 import math

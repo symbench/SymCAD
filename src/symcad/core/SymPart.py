@@ -450,7 +450,7 @@ class SymPart(metaclass=abc.ABCMeta):
 
       Parameters
       ----------
-      **kwargs : `Any`
+      **kwargs : `Dict`
          Set of named parameters that define the geometry of a SymPart.
 
       Raises

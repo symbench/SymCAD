@@ -1,6 +1,7 @@
 numpy
 sympy
 pdoc
+torch
 PyFreeCAD@https://symbench.github.io/PyFreeCAD/packages/PyFreeCAD-0.20.0-py38-none-win_amd64.tar.xz; platform_system=='Windows' and platform_machine=='AMD64' and python_version=='3.8'
 PyFreeCAD@https://symbench.github.io/PyFreeCAD/packages/PyFreeCAD-0.20.0-py39-none-win_amd64.tar.xz; platform_system=='Windows' and platform_machine=='AMD64' and python_version=='3.9'
 PyFreeCAD@https://symbench.github.io/PyFreeCAD/packages/PyFreeCAD-0.20.0-py310-none-win_amd64.tar.xz; platform_system=='Windows' and platform_machine=='AMD64' and python_version=='3.10'

@@ -19,9 +19,11 @@
 from __future__ import annotations
 from typing import Any, Callable, Dict, List, Literal, Tuple, Union
 from PyFreeCAD.FreeCAD import FreeCAD, Part
+from pathlib import Path
 import zipfile
 
 PART_FEATURE_STRING = 'Part::Feature'
+CAD_BASE_PATH: Path = Path(__file__).parent.joinpath('..', '..', 'cadmodels').absolute().resolve()
 
 def is_symbolic(val: Any) -> bool:
    """Returns whether `val` is a symbolic parameter."""

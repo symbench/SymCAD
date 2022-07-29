@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
-from typing import ClassVar, Dict, Literal, Optional, Tuple
+from typing import Dict, Literal, Optional, Tuple
 from PyFreeCAD.FreeCAD import FreeCAD, Mesh, Part
 from .CadGeneral import is_symbolic
 from . import CadGeneral
@@ -27,10 +27,6 @@ class ModeledCad(object):
    """Private helper class to connect a `SymPart` to an existing CAD representation."""
 
    # Public attributes ----------------------------------------------------------------------------
-
-   CAD_BASE_PATH_LEN: ClassVar[int] = 1 + \
-            len(str(Path(__file__).parent.joinpath('..', '..', 'cadmodels').absolute().resolve()))
-   """Number of characters in the local machine's base path containing all built-in CAD models."""
 
    cad_file_path: str
    """Absolute path of the representative CAD model for a given `SymPart`."""
@@ -70,8 +66,7 @@ class ModeledCad(object):
          # Update the target CAD file paths
          file_path = Path(cad_file_name).absolute().resolve()
          cad_file_name = Path('converted').joinpath(Path(cad_file_name).stem + '.FCStd')
-         cad_file_path = Path(__file__).parent.joinpath('..', '..', 'cadmodels', cad_file_name)\
-                                              .absolute().resolve()
+         cad_file_path = CadGeneral.CAD_BASE_PATH.joinpath(cad_file_name)
          if not cad_file_path.exists():
 
             # Determine the type of file to import
@@ -96,9 +91,8 @@ class ModeledCad(object):
                                           .format(file_extension))
 
       # Store the absolute CAD file path
-      self.cad_file_path = str(Path(__file__).parent
-                               .joinpath('..', '..', 'cadmodels', cad_file_name)
-                               .absolute().resolve())
+      self.cad_file_path = \
+            str(CadGeneral.CAD_BASE_PATH.joinpath(cad_file_name).absolute().resolve())
 
 
    # Public methods -------------------------------------------------------------------------------
