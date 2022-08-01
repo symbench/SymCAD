@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
+from typing import Dict
 from copy import deepcopy
 from sympy import Symbol
 
@@ -137,3 +138,8 @@ class Geometry(object):
          if key != 'name':
             setattr(self, key, 0.0)
       return self
+
+
+   def as_dict(self) -> Dict[str, float]:
+      """Returns the current geometric properties as a dictionary."""
+      return { key: val for key, val in self.__dict__.items() if key != 'name' }

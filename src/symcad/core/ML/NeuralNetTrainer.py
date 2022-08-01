@@ -66,7 +66,7 @@ class NeuralNetTrainer(object):
       self.criteria = {}
       self.optimizers = {}
       self.best_networks = {}
-      self.geometry = { key: 0 for key in part.geometry.__dict__.keys() - {'name'} }
+      self.geometry = part.geometry.as_dict()
       for cad_param in cad_params_to_learn:
          network = torch.nn.Sequential(
             torch.nn.Linear(len(self.geometry), 10),
