@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 from .CAD import ModeledCad, ScriptedCad
+from .ML.NeuralNet import NeuralNet
 from .Coordinate import Coordinate
 from .Geometry import Geometry
 from .Rotation import Rotation
@@ -87,6 +88,12 @@ class SymPart(metaclass=abc.ABCMeta):
    material_density: float
    """Uniform material density in `kg/m^3` to be used in mass property calculations."""
 
+   current_states: List[str]
+   """List of geometric states for which the SymPart is currently configured."""
+
+   available_states: List[str]
+   """List of available geometric states for which the SymPart can be configured."""
+
    is_exposed: bool
    """Whether the SymPart is environmentally exposed versus contained in another element."""
 
@@ -95,6 +102,7 @@ class SymPart(metaclass=abc.ABCMeta):
 
    def __init__(self, identifier: str,
                       cad_representation: Union[str, Callable],
+                      properties_model_path: Union[str, None],
                       material_density: float) -> None:
       """Initializes an instance of a `SymPart`.
 
@@ -110,6 +118,9 @@ class SymPart(metaclass=abc.ABCMeta):
       cad_representation : `Union[str, Callable]`
          Either the path to a representative CAD model for the given SymPart or a callable method
          that can create such a model.
+      properties_model_path : `Union[str, None]`
+         Path to a neural network that represents the underlying geometric properties for
+         the given SymPart.
       material_density: `float`
          Uniform material density in `kg/m^3` to be used in mass property calculations.
       """
@@ -124,9 +135,12 @@ class SymPart(metaclass=abc.ABCMeta):
       self.static_placement = None
       self.orientation = Rotation(identifier + '_orientation')
       self.material_density = material_density
+      self.current_states = ['default']
+      self.available_states = []
       self.is_exposed = True
       self.__cad__ = ModeledCad(cad_representation) if isinstance(cad_representation, str) else \
                      ScriptedCad(cad_representation)
+      self.__neural_net__ = NeuralNet(properties_model_path) if properties_model_path else None
 
 
    # Built-in method implementations --------------------------------------------------------------
@@ -232,6 +246,27 @@ class SymPart(metaclass=abc.ABCMeta):
       """
       self.orientation.set(roll_deg=roll_deg, pitch_deg=pitch_deg, yaw_deg=yaw_deg)
       return self
+
+
+   def set_state(self: SymPartSub, state_names: Union[List[str], None]) -> SymPartSub:
+      """Sets the geometric configuration of the SymPart according to the indicated `state_names`.
+
+      The concrete, overriding `SymPart` class may use these `state_names` to alter its underlying
+      geometric properties.
+
+      Parameters
+      ----------
+      state_names : `Union[List[str], None]`
+         List of geometric states for which the part should be configured. If set to `None`,
+         the part will be configured in its default state.
+
+      Returns
+      -------
+      self : `SymPart`
+         The current SymPart being manipulated.
+      """
+      self.current_states = ['default'] if not state_names else \
+                            [state for state in state_names if state in self.available_states]
 
 
    def set_unexposed(self: SymPartSub) -> SymPartSub:
@@ -441,7 +476,7 @@ class SymPart(metaclass=abc.ABCMeta):
                                 self.orientation.as_tuple())
 
 
-   # Abstract methods that must be overridden -----------------------------------------------------
+   # Abstract methods to be overridden ------------------------------------------------------------
 
    @abc.abstractmethod
    def set_geometry(self: SymPartSub, **kwargs) -> SymPartSub:
@@ -459,6 +494,15 @@ class SymPart(metaclass=abc.ABCMeta):
          If the implementing `SymPart` class does not override this method.
       """
       raise NotImplementedError
+
+   def get_valid_states(self: SymPartSub) -> List[str]:
+      """Method that may be overridden by a concrete `SymPart` class to indicate the list of
+      geometric state names recognized by the part.
+
+      If this method is not overridden, it will return an empty list, indicating that the part
+      only has one valid geometric state.
+      """
+      return []
 
 
    # Abstract properties that must be overridden --------------------------------------------------
