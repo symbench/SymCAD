@@ -66,7 +66,7 @@ class NeuralNet(object):
             trainer = NeuralNetTrainer(part, ['xlen', 'ylen', 'zlen', 'cg_x', 'cg_y', 'cg_z',
                                               'cb_x', 'cb_y', 'cb_z', 'material_volume',
                                               'displaced_volume', 'surface_area'])
-            trainer.learn_parameters(20, 32)
+            trainer.learn_parameters(32)
             trainer.save(str(net_file_path))
          else:
             raise RuntimeError('No trained neural network exists at "{}". '

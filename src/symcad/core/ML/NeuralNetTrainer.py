@@ -17,7 +17,10 @@
 from pathlib import Path
 from typing import Dict, List, Tuple
 from ..SymPart import SymPart
-import io, tarfile, torch
+import copy, io, tarfile, torch
+
+NUM_BATCHES_PER_EPOCH = 25
+NUM_NON_BEST_EPOCHS_TO_TERMINATE = 10
 
 class NeuralNetTrainer(object):
    """Private helper class to train a set of neural networks to learn the geometric properties
@@ -33,6 +36,9 @@ class NeuralNetTrainer(object):
 
    networks: Dict[str, torch.nn.Module]
    """Dictionary of neural networks corresponding 1-to-1 to each geometric property to learn."""
+
+   best_networks: Dict[str, torch.nn.Module]
+   """Dictionary of the best neural networks with the lowest losses learned so far."""
 
    criteria: Dict[str, torch.nn.Module]
    """Dictionary of loss criteria corresponding to each neural network being trained."""
@@ -59,6 +65,7 @@ class NeuralNetTrainer(object):
       self.networks = {}
       self.criteria = {}
       self.optimizers = {}
+      self.best_networks = {}
       self.geometry = { key: 0 for key in part.geometry.__dict__.keys() - {'name'} }
       for cad_param in cad_params_to_learn:
          network = torch.nn.Sequential(
@@ -68,6 +75,7 @@ class NeuralNetTrainer(object):
          self.networks[cad_param] = network
          self.criteria[cad_param] = torch.nn.MSELoss()
          self.optimizers[cad_param] = torch.optim.SGD(network.parameters(), lr=0.1)
+         self.best_networks[cad_param] = copy.deepcopy(self.networks[cad_param])
 
 
    # Private helper methods -----------------------------------------------------------------------
@@ -99,7 +107,7 @@ class NeuralNetTrainer(object):
 
    # Public methods -------------------------------------------------------------------------------
 
-   def learn_parameters(self, num_epochs: int, num_data_points_per_batch: int) -> None:
+   def learn_parameters(self, num_data_points_per_batch: int) -> None:
       """Trains the underlying neural network to learn all geometric properties as specified when
       the `NeuralNetTrainer` was created.
 
@@ -109,23 +117,49 @@ class NeuralNetTrainer(object):
          Number of geometric data points to include per training iteration.
       """
 
-      # Ensure that all networks are in training mode
-      for network in self.networks.values():
+      # Initialize loss structures and ensure that all networks are in training mode
+      best_losses = {}
+      running_losses = {}
+      epochs_since_best_loss = {}
+      remaining_networks = self.networks
+      for network_name, network in remaining_networks.items():
+         epochs_since_best_loss[network_name] = 0
+         best_losses[network_name] = 1000000.0
+         running_losses[network_name] = 0.0
          network.train()
 
-      # Train the neural network for the specified number of iterations
-      for epoch in range(num_epochs):
-         inputs, outputs = self._generate_data(num_data_points_per_batch)
-         for network_name, network in self.networks.items():
-            optimizer = self.optimizers[network_name]
-            criterion = self.criteria[network_name]
-            predicted_outputs = network(inputs)
-            print(network_name, predicted_outputs, outputs[network_name])
-            loss = criterion(predicted_outputs, outputs[network_name])
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-            print("Network: {}, Epoch: {} Loss: {}".format(network_name, epoch, loss.item()))
+      # Train the neural networks until their loss stops decreasing
+      while len(remaining_networks):
+
+         # Train each neural network for the specified number of batches
+         for _ in range(NUM_BATCHES_PER_EPOCH):
+            inputs, outputs = self._generate_data(num_data_points_per_batch)
+            for network_name, network in remaining_networks.items():
+               optimizer = self.optimizers[network_name]
+               criterion = self.criteria[network_name]
+               predicted_outputs = network(inputs)
+               loss = criterion(predicted_outputs, outputs[network_name])
+               optimizer.zero_grad()
+               loss.backward()
+               optimizer.step()
+               running_losses[network_name] += loss.item()
+
+         # Determine whether the current network has improved the overall training loss
+         networks_complete =[]
+         for network_name, network in remaining_networks.items():
+            print("Network: {}, Loss: {}"
+                  .format(network_name, running_losses[network_name] / NUM_BATCHES_PER_EPOCH))
+            if running_losses[network_name] < best_losses[network_name]:
+               epochs_since_best_loss[network_name] = 0
+               best_losses[network_name] = running_losses[network_name]
+               self.best_networks[network_name] = copy.deepcopy(network)
+            else:
+               epochs_since_best_loss[network_name] += 1
+            running_losses[network_name] = 0.0
+            if epochs_since_best_loss[network_name] >= NUM_NON_BEST_EPOCHS_TO_TERMINATE:
+               networks_complete.append(network_name)
+         for completed_network in networks_complete:
+            del remaining_networks[completed_network]
 
 
    def save(self, full_storage_path: str) -> None:
@@ -143,7 +177,7 @@ class NeuralNetTrainer(object):
          file_info = tarfile.TarInfo('param_order.txt')
          file_info.size = len(param_order)
          zip_file.addfile(file_info, io.BytesIO(param_order.encode('utf-8')))
-         for network_name, network in self.networks.items():
+         for network_name, network in self.best_networks.items():
             scripted_model = torch.jit.script(network.eval())
             model_bytes = torch.jit.freeze(scripted_model).save_to_buffer()
             file_info = tarfile.TarInfo(network_name + '.pt')
