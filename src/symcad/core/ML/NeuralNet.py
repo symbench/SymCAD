@@ -37,7 +37,7 @@ class NeuralNet(object):
 
    def __init__(self, net_storage_path: str,
                       part: Optional[SymPart] = None,
-                      auto_train_network: Optional[bool] = True) -> None:
+                      auto_train_network: Optional[bool] = False) -> None:
       """Initializes a container to house all neural networks for the geometric properties of
       the given `part`.
 

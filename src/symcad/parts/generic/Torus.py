@@ -49,7 +49,7 @@ class Torus(GenericShape):
       material_density_kg_m3 : `float`, optional, default=1.0
          Uniform material density in `kg/m^3` to be used in mass property calculations.
       """
-      super().__init__(identifier, self.__create_cad__, material_density_kg_m3)
+      super().__init__(identifier, self.__create_cad__, None, material_density_kg_m3)
       setattr(self.geometry, 'hole_radius', Symbol(self.name + '_hole_radius'))
       setattr(self.geometry, 'tube_radius', Symbol(self.name + '_tube_radius'))
 

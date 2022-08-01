@@ -55,7 +55,7 @@ class Torisphere(EndcapShape):
       material_density_kg_m3 : `float`, optional, default=1.0
          Uniform material density in `kg/m^3` to be used in mass property calculations.
       """
-      super().__init__(identifier, 'Torisphere.FCStd', material_density_kg_m3)
+      super().__init__(identifier, 'Torisphere.FCStd', 'Torisphere.tar.xz', material_density_kg_m3)
       setattr(self.geometry, 'base_radius', Symbol(self.name + '_base_radius'))
       setattr(self.geometry, 'crown_ratio', Symbol(self.name + '_crown_ratio'))
       setattr(self.geometry, 'knuckle_ratio', Symbol(self.name + '_knuckle_ratio'))

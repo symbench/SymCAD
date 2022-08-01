@@ -645,7 +645,8 @@ concrete geometric parameters but was constructed via
 
 ## ... add custom states and retrieve custom-state properties?
 
-TODO: Implement this
+TODO: Implement this (part.get_valid_states, list of state for each part,
+part.set_state called before retrieving desired property, assembly.set_state, etc.)
 
 
 ## ... create a design using the JSON Graph API?

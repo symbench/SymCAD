@@ -69,7 +69,10 @@ class Semiellipsoid(EndcapShape):
       minor_depends_on_major : `bool`, optional, default=True
          Whether the radius of the minor axis depends on the major axis or vice versa.
       """
-      super().__init__(identifier, self.__create_cad__, material_density_kg_m3)
+      super().__init__(identifier,
+                       self.__create_cad__,
+                       'Semiellipsoid.tar.xz',
+                       material_density_kg_m3)
       setattr(self.geometry, 'major_radius', Symbol(self.name + '_major_radius'))
       setattr(self.geometry, 'minor_radius', Symbol(self.name + '_minor_radius'))
       setattr(self.geometry, 'thickness', Symbol(self.name + '_thickness'))

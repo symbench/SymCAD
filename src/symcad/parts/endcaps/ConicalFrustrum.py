@@ -53,7 +53,7 @@ class ConicalFrustrum(EndcapShape):
       material_density_kg_m3 : `float`, optional, default=1.0
          Uniform material density in `kg/m^3` to be used in mass property calculations.
       """
-      super().__init__(identifier, self.__create_cad__, material_density_kg_m3)
+      super().__init__(identifier, self.__create_cad__, None, material_density_kg_m3)
       setattr(self.geometry, 'bottom_radius', Symbol(self.name + '_bottom_radius'))
       setattr(self.geometry, 'top_radius', Symbol(self.name + '_top_radius'))
       setattr(self.geometry, 'thickness', Symbol(self.name + '_thickness'))

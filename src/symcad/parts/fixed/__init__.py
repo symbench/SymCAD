@@ -24,6 +24,7 @@ class FixedPart(SymPart, metaclass=abc.ABCMeta):
 
    def __init__(self, identifier: str,
                       cad_representation: Union[str, Callable],
+                      properties_model_path: Union[str, None],
                       material_density_kg_m3: float) -> None:
       """Initializes a fixed-geometry `SymPart`.
 
@@ -34,6 +35,9 @@ class FixedPart(SymPart, metaclass=abc.ABCMeta):
       cad_representation : `Union[str, Callable]`
          Either the path to a representative CAD model for the given `FixedPart` or a
          callable method that can create such a model.
+      properties_model_path : `Union[str, None]`
+         Path to a neural network that represents the underlying geometric properties for
+         the given `FixedPart`.
       material_density_kg_m3 : `float`
          Uniform material density in `kg/m^3` to be used in mass property calculations.
       """
@@ -41,5 +45,8 @@ class FixedPart(SymPart, metaclass=abc.ABCMeta):
                        os.path.join('fixed', cad_representation)
                           if isinstance(cad_representation, str) else
                        cad_representation,
+                       os.path.join('fixed', properties_model_path)
+                          if properties_model_path is not None else
+                       properties_model_path,
                        material_density_kg_m3)
 
