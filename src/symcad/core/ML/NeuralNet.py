@@ -15,11 +15,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from .NeuralNetTrainer import NeuralNetTrainer
-from typing import Dict, List, Optional
-from ...core.SymPart import SymPart
+from typing import Dict, List, Optional, TypeVar
 from ..CAD import CadGeneral
 from pathlib import Path
 import io, tarfile, torch
+
+SymPart = TypeVar('SymPart', bound='SymPart')
 
 class NeuralNet(object):
    """Private container that houses all neural networks for a given `SymPart`."""

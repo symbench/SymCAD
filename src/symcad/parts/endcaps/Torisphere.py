@@ -156,7 +156,7 @@ class Torisphere(EndcapShape):
                                                    Union[float, Expr]]:
       return (self.geometry.base_radius,
               self.geometry.base_radius,
-              self.__neural_net__.evaluate('cg_z', self.geometry.as_dict()))
+              self.__neural_net__.evaluate('cg_z', **self.geometry.as_dict()))
 
    @property
    def unoriented_center_of_buoyancy(self) -> Tuple[Union[float, Expr],
@@ -164,7 +164,7 @@ class Torisphere(EndcapShape):
                                                     Union[float, Expr]]:
       return (self.geometry.base_radius,
               self.geometry.base_radius,
-              self.__neural_net__.evaluate('cb_z', self.geometry.as_dict()))
+              self.__neural_net__.evaluate('cb_z', **self.geometry.as_dict()))
 
    @property
    def unoriented_length(self) -> Union[float, Expr]:

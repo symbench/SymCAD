@@ -72,3 +72,9 @@ if __name__ == '__main__':
    set_geometry /= 2.0
    assert set_geometry.radius == 2.0
    assert set_geometry.length == 1.0 * Symbol('new_length')
+
+   # Test retrieving geometric properties as a dictionary
+   geometric_dict = set_geometry.as_dict()
+   assert geometric_dict['radius'] == 2.0
+   assert geometric_dict['length'] == 1.0 * Symbol('new_length')
+   assert 'name' not in geometric_dict

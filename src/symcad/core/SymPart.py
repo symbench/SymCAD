@@ -15,8 +15,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
+from .ML import NeuralNet
 from .CAD import ModeledCad, ScriptedCad
-from .ML.NeuralNet import NeuralNet
 from .Coordinate import Coordinate
 from .Geometry import Geometry
 from .Rotation import Rotation

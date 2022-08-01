@@ -170,7 +170,7 @@ class Semiellipsoid(EndcapShape):
                                                    Union[float, Expr]]:
       return (self.geometry.major_radius,
               self.geometry.major_radius,
-              self.__neural_net__.evaluate('cg_z', self.geometry.as_dict()))
+              self.__neural_net__.evaluate('cg_z', **self.geometry.as_dict()))
 
    @property
    def unoriented_center_of_buoyancy(self) -> Tuple[Union[float, Expr],

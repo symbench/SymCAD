@@ -15,9 +15,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from pathlib import Path
-from typing import Dict, List, Tuple
-from ..SymPart import SymPart
+from typing import Dict, List, Tuple, TypeVar
 import copy, io, tarfile, torch
+
+SymPart = TypeVar('SymPart', bound='SymPart')
 
 NUM_BATCHES_PER_EPOCH = 25
 NUM_NON_BEST_EPOCHS_TO_TERMINATE = 10
