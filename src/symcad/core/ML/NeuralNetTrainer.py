@@ -56,6 +56,7 @@ class NeuralNetTrainer(object):
 
       The available options for `cad_params_to_learn` are:
 
+      - Minimums: `min_x`, `min_x`, `min_x`
       - Lengths: `xlen`, `ylen`, `zlen`
       - Centers of Gravity: `cg_x`, `cg_y`, `cg_z`
       - Centers of Buoyancy: `cb_x`, `cb_y`, `cb_z`

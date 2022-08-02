@@ -91,9 +91,6 @@ class SymPart(metaclass=abc.ABCMeta):
    current_states: List[str]
    """List of geometric states for which the SymPart is currently configured."""
 
-   available_states: List[str]
-   """List of available geometric states for which the SymPart can be configured."""
-
    is_exposed: bool
    """Whether the SymPart is environmentally exposed versus contained in another element."""
 
@@ -102,7 +99,7 @@ class SymPart(metaclass=abc.ABCMeta):
 
    def __init__(self, identifier: str,
                       cad_representation: Union[str, Callable],
-                      properties_model_path: Union[str, None],
+                      properties_model: Union[str, NeuralNet, None],
                       material_density: float) -> None:
       """Initializes an instance of a `SymPart`.
 
@@ -118,9 +115,9 @@ class SymPart(metaclass=abc.ABCMeta):
       cad_representation : `Union[str, Callable]`
          Either the path to a representative CAD model for the given SymPart or a callable method
          that can create such a model.
-      properties_model_path : `Union[str, None]`
-         Path to a neural network that represents the underlying geometric properties for
-         the given SymPart.
+      properties_model : `Union[str, NeuralNet, None]`
+         Path to or instance of a neural network that may be evaluated to obtain the underlying
+         geometric properties for the given SymPart.
       material_density: `float`
          Uniform material density in `kg/m^3` to be used in mass property calculations.
       """
@@ -135,12 +132,13 @@ class SymPart(metaclass=abc.ABCMeta):
       self.static_placement = None
       self.orientation = Rotation(identifier + '_orientation')
       self.material_density = material_density
-      self.current_states = ['default']
-      self.available_states = []
+      self.current_states = []
       self.is_exposed = True
       self.__cad__ = ModeledCad(cad_representation) if isinstance(cad_representation, str) else \
                      ScriptedCad(cad_representation)
-      self.__neural_net__ = NeuralNet(properties_model_path) if properties_model_path else None
+      self.__neural_net__ = NeuralNet(properties_model) \
+                               if (properties_model and isinstance(properties_model, str)) else \
+                            properties_model
 
 
    # Built-in method implementations --------------------------------------------------------------
@@ -265,8 +263,8 @@ class SymPart(metaclass=abc.ABCMeta):
       self : `SymPart`
          The current SymPart being manipulated.
       """
-      self.current_states = ['default'] if not state_names else \
-                            [state for state in state_names if state in self.available_states]
+      self.current_states = [] if not state_names else \
+                            [state for state in state_names if state in self.get_valid_states()]
 
 
    def set_unexposed(self: SymPartSub) -> SymPartSub:
