@@ -1,2 +1,2 @@
-recursive-include src/symcad/cadmodels *.FCStd
+recursive-include src/symcad/cadmodels *.FCStd *.tar.xz
 global-exclude *.py[co]
