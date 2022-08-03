@@ -21,7 +21,7 @@ from .Coordinate import Coordinate
 from .Geometry import Geometry
 from .Rotation import Rotation
 from typing import Callable, Dict, List, Literal
-from typing import Tuple, TypeVar, Union
+from typing import Optional, Tuple, TypeVar, Union
 from copy import deepcopy
 from sympy import Expr
 import abc
@@ -434,9 +434,16 @@ class SymPart(metaclass=abc.ABCMeta):
       return self
 
 
-   def get_cad_physical_properties(self) -> Dict[str, float]:
+   def get_cad_physical_properties(self,
+                                   normalize_origin: Optional[bool] = False) -> Dict[str, float]:
       """Retrieves the set of physical properties of the SymPart as reported by the underlying
       CAD model.
+
+      Parameters
+      ----------
+      normalize_origin : `bool`, optional, default=False
+         Return physical properties with respect to the front, left, bottom corner of the
+         underlying CAD model.
 
       Returns
       -------
@@ -449,7 +456,8 @@ class SymPart(metaclass=abc.ABCMeta):
       return self.__cad__.get_physical_properties(self.geometry.__dict__,
                                                   placement_center,
                                                   self.orientation.as_tuple(),
-                                                  self.material_density)
+                                                  self.material_density,
+                                                  normalize_origin)
 
 
    def export(self, save_path: str, export_type: Literal['freecad', 'step', 'stl']) -> None:

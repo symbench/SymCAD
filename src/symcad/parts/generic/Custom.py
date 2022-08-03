@@ -22,9 +22,6 @@ from sympy import Expr, Symbol
 from . import GenericShape
 from pathlib import Path
 
-NOT_IMPLEMENTED_MESSAGE = 'The "{}" method is not implemented for non-concrete,\
-                           parametric Custom parts with no underlying trained geometric models.'
-
 class Custom(GenericShape):
    """Model representing a custom generic part.
 
@@ -71,14 +68,25 @@ class Custom(GenericShape):
          Whether to automatically train new a neural network model to evaluate the geometric
          properties of the `Custom` part.
       """
+      
+      # Initialize the Custom part and detect its underlying free parameters
       super().__init__(identifier, cad_representation, None, material_density_kg_m3)
       free_params = CadGeneral.get_free_parameters_from_model(self.__cad__.cad_file_path, None) \
                        if isinstance(cad_representation, str) else \
                     CadGeneral.get_free_parameters_from_method(self.__cad__.creation_callback)
-      self._is_concrete = len(free_params) == 0
       for param in free_params:
          setattr(self.geometry, param, Symbol(self.name + '_' + param))
-      if not self._is_concrete:
+
+      # Retrieve a physical property representation based on whether the part is fully concrete
+      if len(free_params) == 0:
+         self.__neural_net__ = None
+         self.__cad_props__ = self.__cad__.get_physical_properties(self.geometry.as_dict(),
+                                                                   (0.0, 0.0, 0.0),
+                                                                   (0.0, 0.0, 0.0),
+                                                                   self.material_density,
+                                                                   True)
+      else:
+         self.__cad_props__ = None
          self.__neural_net__ = NeuralNet(pretrained_geometric_properties_model
                                             if pretrained_geometric_properties_model else
                                          Path('converted').joinpath(type_name + '.tar.xz'),
@@ -103,12 +111,22 @@ class Custom(GenericShape):
          parameter is missing or set to `None` for any geometric parameter, that parameter will be
          treated as a symbol.
       """
+
+      # Re-initialize the physical property representation of the part based on whether it is
+      # fully concrete after the update to its underlying geometry
       free_params = []
       self.geometry.set(**kwargs)
       for key in self.geometry.__dict__:
          if key != 'name' and isinstance(getattr(self.geometry, key), Expr):
             free_params.append(key)
-      self._is_concrete = len(free_params) == 0
+      if len(free_params) == 0:
+         self.__cad_props__ = self.__cad__.get_physical_properties(self.geometry.as_dict(),
+                                                                   (0.0, 0.0, 0.0),
+                                                                   (0.0, 0.0, 0.0),
+                                                                   self.material_density,
+                                                                   True)
+      else:
+         self.__cad_props__ = None
       return self
 
 
@@ -116,122 +134,50 @@ class Custom(GenericShape):
 
    @property
    def material_volume(self) -> Union[float, Expr]:
-      if self._is_concrete:
-         prop = self.__cad__.get_physical_properties(self.geometry.as_dict(),
-                                                     (0.0, 0.0, 0.0),
-                                                     (0.0, 0.0, 0.0),
-                                                     self.material_density)
-         return prop['material_volume']
-      elif self.__neural_net__:
-         return self.__neural_net__.evaluate('material_volume', **self.geometry.as_dict())
-      else:
-         raise NotImplementedError(NOT_IMPLEMENTED_MESSAGE.format('material_volume'))
+      return self.__cad_props__['material_volume'] if self.__cad_props__ else \
+             self.__neural_net__.evaluate('material_volume', **self.geometry.as_dict())
 
    @property
    def displaced_volume(self) -> Union[float, Expr]:
-      if self._is_concrete:
-         prop = self.__cad__.get_physical_properties(self.geometry.as_dict(),
-                                                     (0.0, 0.0, 0.0),
-                                                     (0.0, 0.0, 0.0),
-                                                     self.material_density)
-         return prop['displaced_volume']
-      elif self.__neural_net__:
-         return self.__neural_net__.evaluate('displaced_volume', **self.geometry.as_dict())
-      else:
-         raise NotImplementedError(NOT_IMPLEMENTED_MESSAGE.format('displaced_volume'))
+      return self.__cad_props__['displaced_volume'] if self.__cad_props__ else \
+             self.__neural_net__.evaluate('displaced_volume', **self.geometry.as_dict())
 
    @property
    def surface_area(self) -> Union[float, Expr]:
-      if self._is_concrete:
-         prop = self.__cad__.get_physical_properties(self.geometry.as_dict(),
-                                                     (0.0, 0.0, 0.0),
-                                                     (0.0, 0.0, 0.0),
-                                                     self.material_density)
-         return prop['surface_area']
-      elif self.__neural_net__:
-         return self.__neural_net__.evaluate('surface_area', **self.geometry.as_dict())
-      else:
-         raise NotImplementedError(NOT_IMPLEMENTED_MESSAGE.format('surface_area'))
+      return self.__cad_props__['surface_area'] if self.__cad_props__ else \
+             self.__neural_net__.evaluate('surface_area', **self.geometry.as_dict())
 
    @property
    def unoriented_center_of_gravity(self) -> Tuple[Union[float, Expr],
                                                    Union[float, Expr],
                                                    Union[float, Expr]]:
-      if self._is_concrete:
-         prop = self.__cad__.get_physical_properties(self.geometry.as_dict(),
-                                                     (0.0, 0.0, 0.0),
-                                                     (0.0, 0.0, 0.0),
-                                                     self.material_density)
-         return (prop['cg_x'] - prop['min_x'],
-                 prop['cg_y'] - prop['min_y'],
-                 prop['cg_z'] - prop['min_z'])
-      elif self.__neural_net__:
-         return (self.__neural_net__.evaluate('cg_x', **self.geometry.as_dict()) - 
-                    self.__neural_net__.evaluate('min_x', **self.geometry.as_dict()),
-                 self.__neural_net__.evaluate('cg_y', **self.geometry.as_dict()) - 
-                    self.__neural_net__.evaluate('min_y', **self.geometry.as_dict()),
-                 self.__neural_net__.evaluate('cg_z', **self.geometry.as_dict()) - 
-                    self.__neural_net__.evaluate('min_z', **self.geometry.as_dict()))
-      else:
-         raise NotImplementedError(NOT_IMPLEMENTED_MESSAGE.format('unoriented_center_of_gravity'))
+      return (self.__cad_props__['cg_x'], self.__cad_props__['cg_y'], self.__cad_props__['cg_z']) \
+                if self.__cad_props__ else \
+             (self.__neural_net__.evaluate('cg_x', **self.geometry.as_dict()),
+              self.__neural_net__.evaluate('cg_y', **self.geometry.as_dict()),
+              self.__neural_net__.evaluate('cg_z', **self.geometry.as_dict()))
 
    @property
    def unoriented_center_of_buoyancy(self) -> Tuple[Union[float, Expr],
                                                     Union[float, Expr],
                                                     Union[float, Expr]]:
-      if self._is_concrete:
-         prop = self.__cad__.get_physical_properties(self.geometry.as_dict(),
-                                                     (0.0, 0.0, 0.0),
-                                                     (0.0, 0.0, 0.0),
-                                                     self.material_density)
-         return (prop['cb_x'] - prop['min_x'],
-                 prop['cb_y'] - prop['min_y'],
-                 prop['cb_z'] - prop['min_z'])
-      elif self.__neural_net__:
-         return (self.__neural_net__.evaluate('cb_x', **self.geometry.as_dict()) - 
-                    self.__neural_net__.evaluate('min_x', **self.geometry.as_dict()),
-                 self.__neural_net__.evaluate('cb_y', **self.geometry.as_dict()) - 
-                    self.__neural_net__.evaluate('min_y', **self.geometry.as_dict()),
-                 self.__neural_net__.evaluate('cb_z', **self.geometry.as_dict()) - 
-                    self.__neural_net__.evaluate('min_z', **self.geometry.as_dict()))
-      else:
-         raise NotImplementedError(NOT_IMPLEMENTED_MESSAGE.format('unoriented_center_of_buoyancy'))
+      return (self.__cad_props__['cb_x'], self.__cad_props__['cb_y'], self.__cad_props__['cb_z']) \
+                if self.__cad_props__ else \
+             (self.__neural_net__.evaluate('cb_x', **self.geometry.as_dict()),
+              self.__neural_net__.evaluate('cb_y', **self.geometry.as_dict()),
+              self.__neural_net__.evaluate('cb_z', **self.geometry.as_dict()))
 
    @property
    def unoriented_length(self) -> Union[float, Expr]:
-      if self._is_concrete:
-         prop = self.__cad__.get_physical_properties(self.geometry.as_dict(),
-                                                     (0.0, 0.0, 0.0),
-                                                     (0.0, 0.0, 0.0),
-                                                     self.material_density)
-         return prop['xlen']
-      elif self.__neural_net__:
-         return self.__neural_net__.evaluate('xlen', **self.geometry.as_dict())
-      else:
-         raise NotImplementedError(NOT_IMPLEMENTED_MESSAGE.format('unoriented_length'))
+      return self.__cad_props__['xlen'] if self.__cad_props__ else \
+             self.__neural_net__.evaluate('xlen', **self.geometry.as_dict())
 
    @property
    def unoriented_width(self) -> Union[float, Expr]:
-      if self._is_concrete:
-         prop = self.__cad__.get_physical_properties(self.geometry.as_dict(),
-                                                     (0.0, 0.0, 0.0),
-                                                     (0.0, 0.0, 0.0),
-                                                     self.material_density)
-         return prop['ylen']
-      elif self.__neural_net__:
-         return self.__neural_net__.evaluate('ylen', **self.geometry.as_dict())
-      else:
-         raise NotImplementedError(NOT_IMPLEMENTED_MESSAGE.format('unoriented_width'))
+      return self.__cad_props__['ylen'] if self.__cad_props__ else \
+             self.__neural_net__.evaluate('ylen', **self.geometry.as_dict())
 
    @property
    def unoriented_height(self) -> Union[float, Expr]:
-      if self._is_concrete:
-         prop = self.__cad__.get_physical_properties(self.geometry.as_dict(),
-                                                     (0.0, 0.0, 0.0),
-                                                     (0.0, 0.0, 0.0),
-                                                     self.material_density)
-         return prop['zlen']
-      elif self.__neural_net__:
-         return self.__neural_net__.evaluate('zlen', **self.geometry.as_dict())
-      else:
-         raise NotImplementedError(NOT_IMPLEMENTED_MESSAGE.format('unoriented_height'))
+      return self.__cad_props__['zlen'] if self.__cad_props__ else \
+             self.__neural_net__.evaluate('zlen', **self.geometry.as_dict())

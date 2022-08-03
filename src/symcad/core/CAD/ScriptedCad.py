@@ -108,7 +108,8 @@ class ScriptedCad(object):
    def get_physical_properties(self, concrete_parameters: Dict[str, float],
                                      placement_point: Tuple[float, float, float],
                                      yaw_pitch_roll_deg: Tuple[float, float, float],
-                                     material_density_kg_m3: float) -> Dict[str, float]:
+                                     material_density_kg_m3: float,
+                                     normalize_origin: bool) -> Dict[str, float]:
       """Returns all physical properties of the CAD model.
 
       Mass properties will be computed assuming a uniform material density as specified in
@@ -129,6 +130,9 @@ class ScriptedCad(object):
          Global yaw-, pitch-, and roll-orientation in degrees of the CAD object.
       material_density_kg_m3 : `float`
          Uniform material density to be used in mass property calculations (in `kg/m^3`).
+      normalize_origin : `bool`
+         Return physical properties with respect to the front, left, bottom corner of the
+         underlying CAD model.
 
       Returns
       -------
@@ -170,7 +174,8 @@ class ScriptedCad(object):
       doc.recompute()
       properties = CadGeneral.fetch_model_physical_properties(model.Shape,
                                                               displaced_model.Shape,
-                                                              material_density_kg_m3)
+                                                              material_density_kg_m3,
+                                                              normalize_origin)
       FreeCAD.closeDocument(doc.Name)
       return properties
 

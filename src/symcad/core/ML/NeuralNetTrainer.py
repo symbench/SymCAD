@@ -56,7 +56,6 @@ class NeuralNetTrainer(object):
 
       The available options for `cad_params_to_learn` are:
 
-      - Minimums: `min_x`, `min_x`, `min_x`
       - Lengths: `xlen`, `ylen`, `zlen`
       - Centers of Gravity: `cg_x`, `cg_y`, `cg_z`
       - Centers of Buoyancy: `cb_x`, `cb_y`, `cb_z`
@@ -95,7 +94,7 @@ class NeuralNetTrainer(object):
             self.geometry[param] = inputs[datum, idx].item()
          self.sympart.geometry.set(**self.geometry)
          try:
-            props = self.sympart.get_cad_physical_properties()
+            props = self.sympart.get_cad_physical_properties(True)
          except Exception:
             inputs[datum] = torch.rand(len(self.geometry))
             continue
@@ -120,6 +119,9 @@ class NeuralNetTrainer(object):
       """
 
       # Initialize loss structures and ensure that all networks are in training mode
+      print('Training neural nets for the "{}" part'.format(self.sympart.name))
+      print('Input geometric parameters: {}'.format(list(self.geometry.keys())))
+      print('Properties being trained: {}'.format(list(self.networks.keys())))
       best_losses = {}
       running_losses = {}
       epochs_since_best_loss = {}
@@ -162,6 +164,7 @@ class NeuralNetTrainer(object):
                networks_complete.append(network_name)
          for completed_network in networks_complete:
             del remaining_networks[completed_network]
+      print('Training complete!')
 
 
    def save(self, full_storage_path: str) -> None:

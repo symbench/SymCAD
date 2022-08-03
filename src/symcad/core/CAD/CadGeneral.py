@@ -172,7 +172,8 @@ def compute_placement_point(part: Part.Solid,
 
 def fetch_model_physical_properties(model: Part.Feature,
                                     displaced_model: Union[Part.Feature, None],
-                                    material_density_kg_m3: float) -> Dict[str, float]:
+                                    material_density_kg_m3: float,
+                                    normalize_origin: bool) -> Dict[str, float]:
    """Returns all physical properties of the specified CAD model.
 
    Mass properties will be computed assuming a uniform material density as specified in
@@ -187,13 +188,15 @@ def fetch_model_physical_properties(model: Part.Feature,
       of a solid.
    material_density_kg_m3 : `float`
       Uniform material density to be used in mass property calculations (in `kg/m^3`).
+   normalize_origin : `bool`
+      Return physical properties with respect to the front, left, bottom corner of the model.
 
    Returns
    -------
    `Dict[str, float]`
       A dictionary containing all physical properties of the underlying CAD model.
    """
-   return {
+   props = {
       'xlen': float(FreeCAD.Units.Quantity(model.BoundBox.XLength, FreeCAD.Units.Length)
                                  .getValueAs('m')),
       'ylen': float(FreeCAD.Units.Quantity(model.BoundBox.YLength, FreeCAD.Units.Length)
@@ -231,6 +234,15 @@ def fetch_model_physical_properties(model: Part.Feature,
       'surface_area': float(FreeCAD.Units.Quantity(displaced_model.Area, FreeCAD.Units.Area)
                                  .getValueAs('m^2')) if displaced_model is not None else 0.0
    }
+   if normalize_origin:
+      props['cg_x'] -= props['min_x']
+      props['cg_y'] -= props['min_y']
+      props['cg_z'] -= props['min_z']
+      props['cb_x'] -= props['min_x']
+      props['cb_y'] -= props['min_y']
+      props['cb_z'] -= props['min_z']
+      props['min_x'] = props['min_y'] = props['min_z'] = 0.0
+   return props
 
 
 def fetch_assembly_physical_properties(assembly: FreeCAD.Document,
@@ -266,7 +278,8 @@ def fetch_assembly_physical_properties(assembly: FreeCAD.Document,
       displaced_part = None if not displaced_part else displaced_part[0]
       part_props = fetch_model_physical_properties(part.Shape,
                                                    displaced_part.Shape,
-                                                   material_densities[part.Label])
+                                                   material_densities[part.Label],
+                                                   False)
       props['cg_x'] += (part_props['cg_x'] * part_props['mass'])
       props['cg_y'] += (part_props['cg_y'] * part_props['mass'])
       props['cg_z'] += (part_props['cg_z'] * part_props['mass'])
