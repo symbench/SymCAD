@@ -136,7 +136,7 @@ class SymPart(metaclass=abc.ABCMeta):
       self.is_exposed = True
       self.__cad__ = ModeledCad(cad_representation) if isinstance(cad_representation, str) else \
                      ScriptedCad(cad_representation)
-      self.__neural_net__ = NeuralNet(properties_model) \
+      self.__neural_net__ = NeuralNet(identifier, properties_model) \
                                if (properties_model and isinstance(properties_model, str)) else \
                             properties_model
 

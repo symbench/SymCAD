@@ -68,7 +68,7 @@ class Custom(GenericShape):
          Whether to automatically train new a neural network model to evaluate the geometric
          properties of the `Custom` part.
       """
-      
+
       # Initialize the Custom part and detect its underlying free parameters
       super().__init__(identifier, cad_representation, None, material_density_kg_m3)
       free_params = CadGeneral.get_free_parameters_from_model(self.__cad__.cad_file_path, None) \
@@ -87,7 +87,8 @@ class Custom(GenericShape):
                                                                    True)
       else:
          self.__cad_props__ = None
-         self.__neural_net__ = NeuralNet(pretrained_geometric_properties_model
+         self.__neural_net__ = NeuralNet(type_name,
+                                         pretrained_geometric_properties_model
                                             if pretrained_geometric_properties_model else
                                          Path('converted').joinpath(type_name + '.tar.xz'),
                                          self,

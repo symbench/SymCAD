@@ -14,8 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from constraint_prog.sympy_func import NeuralFunc
 from .NeuralNetTrainer import NeuralNetTrainer
-from typing import Dict, List, Optional, TypeVar
+from typing import Dict, List, Optional, TypeVar, Union
 from ..CAD import CadGeneral
 from pathlib import Path
 import io, tarfile, torch
@@ -30,13 +31,18 @@ class NeuralNet(object):
    networks: Dict[str, torch.ScriptModule]
    """Dictionary of neural networks corresponding to each learned geometric property."""
 
+   sympy_networks: Dict[str, NeuralFunc]
+   """Dictionary of sympy wrappers for the neural networks corresponding to each learned
+   geometric property."""
+
    param_order: List[str]
    """List containing the expected input order of geometric parameters to each neural network."""
 
 
    # Constructor ----------------------------------------------------------------------------------
 
-   def __init__(self, net_storage_path: str,
+   def __init__(self, part_type_name: str,
+                      net_storage_path: str,
                       part: Optional[SymPart] = None,
                       auto_train_network: Optional[bool] = False) -> None:
       """Initializes a container to house all neural networks for the geometric properties of
@@ -51,6 +57,7 @@ class NeuralNet(object):
       # Initialize NeuralNet data structure
       super().__init__()
       self.networks = {}
+      self.sympy_networks = {}
       self.param_order = []
 
       # Ensure that the neural network exists and has been trained
@@ -85,11 +92,16 @@ class NeuralNet(object):
                network_name = '.'.join(filename.split('.')[:-1])
                self.networks[network_name] = torch.jit.load(network_bytes)
                self.networks[network_name].eval()
+      for network_name in self.networks.keys():
+         self.sympy_networks[network_name] = type(part_type_name + '_' + network_name,
+                                                   (NeuralFunc,),
+                                                   {'arity': len(self.param_order),
+                                                   'network': self.networks[network_name]})
 
 
    # Public methods -------------------------------------------------------------------------------
 
-   def evaluate(self, property: str, **kwargs) -> float:
+   def evaluate(self, property: str, **kwargs) -> Union[NeuralFunc, float]:
       """Evaluates the specified parameters in `**kwargs` through the neural network
       corresponding to the indicated geometric `property`.
 
@@ -108,10 +120,16 @@ class NeuralNet(object):
 
       Returns
       -------
-      `float`
+      `Union[NeuralFunc, float]`
          The requested property as evaluated by the underlying neural network.
       """
-      inputs = torch.empty(len(self.param_order))
-      for idx, param in enumerate(self.param_order):
-         inputs[idx] = kwargs.get(param)
-      return self.networks[property](inputs).item()
+      if all([isinstance(val, float) or isinstance(val, int) for val in kwargs.values()]):
+         inputs = torch.empty(len(self.param_order))
+         for idx, param in enumerate(self.param_order):
+            inputs[idx] = kwargs.get(param)
+         return self.networks[property](inputs).item()
+      else:
+         inputs = []
+         for param in self.param_order:
+            inputs.append(kwargs.get(param))
+         return self.sympy_networks[property](*inputs)

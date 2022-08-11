@@ -58,7 +58,7 @@ def run_cad_tests(delete_cad_models: bool):
 
    # Test physical property retrieval from a built-in modeled construction
    concrete_params = {'base_radius': 0.22, 'radius': 0.22, 'crown_ratio': 1.0, 'knuckle_ratio': 0.06, 'height': 0.6, 'flange_radius': 0.08, 'thickness': 0.0025}
-   props = torisphere.__cad__.get_physical_properties(concrete_params, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), 1000.0)
+   props = torisphere.__cad__.get_physical_properties(concrete_params, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), 1000.0, False)
    assert 'xlen' in props and 'ylen' in props and 'zlen' in props
    assert 'cg_x' in props and 'cg_y' in props and 'cg_z' in props
    assert 'cb_x' in props and 'cb_y' in props and 'cb_z' in props
@@ -79,7 +79,7 @@ def run_cad_tests(delete_cad_models: bool):
       os.remove('test_out_torisphere_builtin.stp')
 
    # Test physical property retrieval from a built-in scripted construction
-   props = pipe.__cad__.get_physical_properties(concrete_params, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), 1000.0)
+   props = pipe.__cad__.get_physical_properties(concrete_params, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), 1000.0, True)
    assert 'xlen' in props and 'ylen' in props and 'zlen' in props
    assert 'cg_x' in props and 'cg_y' in props and 'cg_z' in props
    assert 'cb_x' in props and 'cb_y' in props and 'cb_z' in props
@@ -100,7 +100,7 @@ def run_cad_tests(delete_cad_models: bool):
       os.remove('test_out_pipe_builtin.stp')
 
    # Test physical property retrieval from a custom modeled construction
-   props = external_plate.__cad__.get_physical_properties(concrete_params, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), 1000.0)
+   props = external_plate.__cad__.get_physical_properties(concrete_params, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), 1000.0, False)
    assert 'xlen' in props and 'ylen' in props and 'zlen' in props
    assert 'cg_x' in props and 'cg_y' in props and 'cg_z' in props
    assert 'cb_x' in props and 'cb_y' in props and 'cb_z' in props
@@ -121,7 +121,7 @@ def run_cad_tests(delete_cad_models: bool):
       os.remove('test_out_plate_external.stp')
 
    # Test physical property retrieval from a custom modeled construction with CAD conversion
-   props = external_plate_converted.__cad__.get_physical_properties(concrete_params, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), 1000.0)
+   props = external_plate_converted.__cad__.get_physical_properties(concrete_params, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), 1000.0, True)
    assert 'xlen' in props and 'ylen' in props and 'zlen' in props
    assert 'cg_x' in props and 'cg_y' in props and 'cg_z' in props
    assert 'cb_x' in props and 'cb_y' in props and 'cb_z' in props
@@ -145,7 +145,7 @@ def run_cad_tests(delete_cad_models: bool):
       os.remove('test_out_plate_external_converted.stp')
 
    # Test physical property retrieval from a custom scripted construction
-   props = external_pipe.__cad__.get_physical_properties(concrete_params, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), 1000.0)
+   props = external_pipe.__cad__.get_physical_properties(concrete_params, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), 1000.0, False)
    assert 'xlen' in props and 'ylen' in props and 'zlen' in props
    assert 'cg_x' in props and 'cg_y' in props and 'cg_z' in props
    assert 'cb_x' in props and 'cb_y' in props and 'cb_z' in props
