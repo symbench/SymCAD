@@ -92,7 +92,9 @@ class ModeledCad(object):
 
       # Store the absolute CAD file path
       self.cad_file_path = \
-            str(CadGeneral.CAD_BASE_PATH.joinpath(cad_file_name).absolute().resolve())
+            str(CadGeneral.CAD_BASE_PATH.joinpath(cad_file_name).absolute().resolve()) \
+               if not Path(cad_file_name).is_absolute() else \
+            cad_file_name
 
 
    # Public methods -------------------------------------------------------------------------------
