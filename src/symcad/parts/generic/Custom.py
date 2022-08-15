@@ -38,7 +38,7 @@ class Custom(GenericShape):
    def __init__(self, type_name: str,
                       identifier: str,
                       cad_representation: Union[str, Callable],
-                      pretrained_geometric_properties_model: Union[str, None],
+                      pretrained_geometric_properties_model: Union[str, None] = None,
                       material_density_kg_m3: Optional[float] = 1.0,
                       auto_train_missing_property_model: bool = True) -> None:
       """Initializes a custom `GenericShape` part object.
@@ -59,7 +59,7 @@ class Custom(GenericShape):
       cad_representation : `Union[str, Callable]`
          Either the path to a representative CAD model for the given part or a callable
          method that can create such a model.
-      pretrained_geometric_properties_model : `Union[str, None]`
+      pretrained_geometric_properties_model : `Union[str, None]`, default=None
          Path to a neural network that represents the underlying geometric properties for
          the given `Custom` part, or `None` if no model is required.
       material_density_kg_m3 : `float`, optional, default=1.0
