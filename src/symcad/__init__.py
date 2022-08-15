@@ -19,7 +19,7 @@
 
 SymCAD is a Python library that combines symbolic model creation, orientation, and assembly with
 concrete CAD representations and manipulations. It allows users to programmatically design
-individual shape-based parts, ranging from the very simple and generic to the more complex and
+individual shape-based parts, ranging from the very simple and generic to the complex and
 specific, while allowing parameters related to the geometry, orientation, and placement
 of a part to be expressed symbolically.
 
@@ -42,7 +42,8 @@ Notable features of the library include:
   - Custom attachment and connection points for each part
   - Part-based [physical property retrieval](#retrieve-physical-properties-from-a-part):
     1. Based on closed-form equations (concrete or symbolic)
-    2. Based on CAD representation (concrete)
+    2. Based on CAD representations (concrete)
+    3. Based on pretrained neural networks (concrete or symbolic)
   - Assembly-based cumulative
     [physical property retrieval](#retrieve-physical-properties-from-an-assembly)
   - Physical properties include: mass, material volume, displaced volume, surface area,
@@ -55,7 +56,7 @@ Notable features of the library include:
   - Automatic separation of regular and displacement models
   - Parts and assemblies exportable to FreeCAD, STEP, or STL
   - [State-based physical properties](#add-custom-states-and-retrieve-custom-state-properties)
-    for assemblies (TODO)
+    for assemblies
   - Simple interface for
     [concretizing free parameters](#load-concrete-values-for-the-free-parameters-in-an-assembly)
     in a symbolic design
@@ -98,7 +99,7 @@ Internal conventions assumed by the library are as follows:
                                  the locations of its attachment and connection points, as well
                                  as its center of placement and rotation. All coordinates fall
                                  within the range `[0.0, 1.0]` and are relative to the total length
-                                 (x-axis), width (y-axis), or height (z-axis) of the part. This
+                                 (x-axis), width (y-axis), and height (z-axis) of the part. This
                                  coordinate system rotates along with the part.
   - **Global coordinate system**: The coordinate system used by an assembly to place and orient
                                   its constituent parts. It does not rotate, and its coordinates
@@ -143,17 +144,17 @@ Internal conventions assumed by the library are as follows:
                        the `set_geometry()` method for a given part will always specify a set
                        of keywords indicating its precise underlying geometric properties.
 
-Specific details regarding the geometric parameters and default orientation of each part can be
-found in their corresponding documentation pages.
+Specific details regarding the geometric parameters and default orientation of any `SymCAD` part
+can be found in its corresponding part-specific documentation page.
 
 
 # Getting Started
 
-To use the SymCAD library in your project, you may install it using `pip` or add it as a
-dependency in your `requirements.txt` file using the string
-`git+https://github.com/SymBench/SymCAD.git`. Alternately, you may add the GitHub repository
-as a submodule to your project using `git submodule add https://github.com/SymBench/SymCAD`.
-If you plan to develop or work on the SymCAD project itself, you should clone the
+To use the SymCAD library in your project, you may install it manually using the string
+`git+https://github.com/SymBench/SymCAD.git` with `pip` or add it as a dependency in your
+`requirements.txt` file. Alternately, you may add the GitHub repository as a submodule to your
+project using `git submodule add https://github.com/SymBench/SymCAD`. If you plan to develop or
+work on the SymCAD project itself, you should clone the
 [SymCAD repository](https://github.com/SymBench/SymCAD) and install it using
 `python3 -m pip install -e .` from the SymCAD root directory.
 
@@ -161,7 +162,7 @@ Once the library has been installed, you may begin work on your first SymCAD ass
 in the following example:
 
 ```python
-from symcad.core import Assembly, Coordinate
+from symcad.core import Assembly
 from symcad.parts import Pipe, FlangedFlatPlate, Torisphere
 
 # Create random concrete components
@@ -202,7 +203,7 @@ methods (for example, to concretely set only *some* of the geometric parameters)
 non-concrete parameters symbolic by passing them a value of `None`:
 
 ```python
-from symcad.core import Assembly, Coordinate
+from symcad.core import Assembly
 from symcad.parts import Pipe, FlangedFlatPlate, Torisphere
 
 # Create random concrete components with symbolic geometries
@@ -244,10 +245,10 @@ parameters will return those properties as symbolic equations with respect to an
 parameters, like so:
 
 ```python
-print('Displaced Volume:', assembly.displaced_volume)
+print('Displaced Volume:', assembly.displaced_volume())
 ```
 
-which should output a giant equation with respect to the free parameters listed above. This is
+which should output a large equation with respect to the free parameters listed above. This is
 useful when utilizing either a single part or an entire assembly to maintain some constraint; for
 example, when using the [SymBench Constraint Solver](https://github.com/SymBench/constraint-prog)
 to ensure that a Pressure Vessel has a large enough volume to contain the necessary number of
@@ -257,12 +258,12 @@ offset only by some z-axis value:
 ```python
 # Create battery volume constraint
 required_battery_cell_volume = 1.23  # Calculation done elsewhere
-pressure_vessel.displaced_volume >= required_battery_cell_volume
+pressure_vessel.displaced_volume() >= required_battery_cell_volume
 
 # Create center of gravity and buoyancy constraints
-uuv_assembly.center_of_gravity.x == uuv_assembly.center_of_buoyancy.x
-uuv_assembly.center_of_gravity.y == uuv_assembly.center_of_buoyancy.y
-uuv_assembly.center_of_gravity.z <= uuv_assembly.center_of_buoyancy.z
+uuv_assembly.center_of_gravity().x == uuv_assembly.center_of_buoyancy().x
+uuv_assembly.center_of_gravity().y == uuv_assembly.center_of_buoyancy().y
+uuv_assembly.center_of_gravity().z <= uuv_assembly.center_of_buoyancy().z
 ```
 
 To add to the utility of the above symbolic physical properties, it is also possible to specify
@@ -270,7 +271,7 @@ that an *external* symbol or equation should be used for any of the geometric, o
 placement parameters of a part. For example, instead of making the entire geometry of the
 previously shown Pressure Vessel *independently* symbolic, we could specify that its radius is
 equal to a symbolic fairing radius, and its thickness is equal to some complex model-based
-equation that depends on target depth:
+equation that depends on a target depth:
 
 ```python
 # These symbols and equations could be defined elsewhere or retrieved
@@ -316,13 +317,13 @@ concrete_params = {
 concrete_assembly = assembly.make_concrete(concrete_params)
 
 # Output some physical properties of the assembly using its model equations
-print(concrete_assembly.displaced_volume)
-print(concrete_assembly.center_of_gravity)
+print(concrete_assembly.displaced_volume())
+print(concrete_assembly.center_of_gravity())
 
 # Output the physical properties of the assembly as determined from its CAD model
 print(concrete_assembly.get_cad_physical_properties())
 
-# Export the CAD model as a STL file
+# Export the CAD model as an STL file
 concrete_assembly.export('concrete_test.stl', 'stl')
 ```
 
@@ -335,7 +336,7 @@ create individual parts and opt *not* to call any of their `add_attachment_point
 `add_connection_port()`, or `connect()` methods:
 
 ```python
-from symcad.core import Assembly, Coordinate
+from symcad.core import Assembly
 from symcad.parts import Pipe, FlangedFlatPlate, Torisphere
 
 # Create random components
@@ -349,7 +350,7 @@ rear_endcap = Torisphere('RearEndcap')\\
    .set_geometry(base_radius_m=0.22, thickness_m=0.0025)\\
    .set_orientation(roll_deg=0, pitch_deg=90.0, yaw_deg=0)
 
-# Create assembly without any attachments
+# Create an assembly without any attachments
 assembly = Assembly('SymCadExample')
 assembly.add_part(front_endcap)
 assembly.add_part(center_pipe)
@@ -369,7 +370,7 @@ placement coordinate:
   - can be concretized in exactly the same manner as the geometric properties shown above.
 
 Of course, a hybrid approach may be taken whereby some parts are placed via Assembly-by-Attachment
-and other parts are left to Assembly-by-Placement for the final conrete CAD representation.
+and other parts are left to Assembly-by-Placement for the final concrete CAD representation.
 
 Additional usage examples may be found in the [SymCAD Repository](https://github.com/SymBench/SymCAD)
 under the `examples` directory.
@@ -424,18 +425,19 @@ This method is passed to the `cad_model` parameter of the `__init__()` function 
 ```python
 from PyFreeCAD.FreeCAD import FreeCAD, Part
 from symcad.core.SymPart import SymPart
+from sympy import Symbol, Expr
 
 class MyCustomBox(SymPart):
 
-   def __init__(self, identifier: str, material_density_kg_m3: Optional[float] = 1.0) -> None:
-      super().__init__(identifier, self.__create_cad__, material_density_kg_m3)
+   def __init__(self, identifier: str, material_density_kg_m3: float):
+      super().__init__(identifier, self.__create_cad__, None, material_density_kg_m3)
       setattr(self.geometry, 'length', Symbol(self.name + '_length'))
       setattr(self.geometry, 'width', Symbol(self.name + '_width'))
       setattr(self.geometry, 'height', Symbol(self.name + '_height'))
       setattr(self.geometry, 'thickness', Symbol(self.name + '_thickness'))
 
    @staticmethod
-   def __create_cad__(params: Dict[str, float], fully_displace: bool) -> Part.Solid:
+   def __create_cad__(params: dict, fully_displace: bool) -> Part.Solid:
       thickness_mm = 1000.0 * params['thickness']
       outer_length_mm = 1000.0 * params['length']
       outer_width_mm = 1000.0 * params['width']
@@ -478,6 +480,21 @@ def unoriented_width(self) -> Union[float, Expr]:
 def unoriented_height(self) -> Union[float, Expr]:
 ```
 
+Finally, a `set_geometry(self, **kwargs)` method must be implemented by your custom SymCAD part
+to set any symbolic parameters to their concrete values (or `None` if they should remain symbolic):
+
+```python
+def set_geometry(self, *, length_m: Union[float, None],
+                          width_m: Union[float, None],
+                          height_m: Union[float, None],
+                          thickness_m: Union[float, None]) -> MyCustomBox:
+   self.geometry.set(length=length_m, width=width_m, height=height_m, thickness=thickness_m)
+   return self
+```
+
+For a full example of the custom 3D box just described, refer to `scripted_symcad_part.py` in the
+`examples` directory of the [SymCAD Repository](https://github.com/SymBench/SymCAD).
+
 
 ## ... create a new modeled SymCAD part?
 
@@ -501,8 +518,10 @@ satisfied:
 After creation and storage of the CAD model, its base file name is passed to the `cad_model`
 parameter of the `__init__()` function of the `symcad.core.SymPart` class from which your custom
 part must inherit. All other implementation details remain the same as described above for part
-creation using a [scripted SymCAD approach](#create-a-new-scripted-symcad-part).
-
+creation using a [scripted SymCAD approach](#create-a-new-scripted-symcad-part). Refer to the
+`modeled_symcad_part.py` file under the `examples` directory of the
+[SymCAD Repository](https://github.com/SymBench/SymCAD) for an example of a custom modeled
+SymCAD part.
 
 
 ## ... import an existing CAD model?
@@ -518,12 +537,13 @@ following templates:
 ```python
 from symcad.parts import Custom
 
-custom_shape = Custom('Shape', '/tmp/Existing.stp')
-custom_shape_with_density = Custom('ShapeWithDensity', '/tmp/Existing.stp', 1028.0)
+custom_shape = Custom('Custom', 'Shape', '/tmp/Existing.stp')
+custom_shape_with_neural_net = Custom('Custom', 'ShapeWithNN', '/tmp/Existing.stp', '/tmp/ExistingNN.tar.xz')
+custom_shape_with_density = Custom('Custom', 'ShapeWithDensity', '/tmp/Existing.stp', None, 1028.0)
 ```
 
 The `symcad.parts.generic.Custom` SymPart class can also be used to create a custom part based on
-a scripted CAD representation. This is achieved by passing in a static CAD creation method to the
+a scripted CAD representation. This is achieved by passing a static CAD creation method to the
 `symcad.parts.generic.Custom` initializer as described in the
 [scripted SymCAD section](#create-a-new-scripted-symcad-part):
 
@@ -531,35 +551,237 @@ a scripted CAD representation. This is achieved by passing in a static CAD creat
 from PyFreeCAD.FreeCAD import FreeCAD, Part
 from symcad.parts import Custom
 
-def cad_creation_method(params: Dict[str, float], fully_displace: bool) -> Part.Solid:
+def cad_creation_method(params: dict, fully_displace: bool) -> Part.Solid:
    # Your implementation here
 
-custom_shape = Custom('Shape', cad_creation_method)
+custom_shape = Custom('Custom', 'Shape', cad_creation_method)
 ```
 
 Once created, an imported `Custom` part behaves exactly the same as any other `SymPart` in the
 library.
 
+Note, if an existing **parametric** CAD model is imported but no corresponding neural network is
+specified to represent a mapping between the geometric parameters of the part and its
+mass/physical properties, a neural network will automatically be trained to learn these mappings
+unless a value of `False` is passed to the `auto_train_missing_property_model` parameter of the
+`symcad.parts.generic.Custom` constructor. This operation can take quite some time, so it is
+recommended that this be done when you are not expecting to continue working with SymCAD for
+awhile. Once trained, the neural network will be stored for later retrieval so that the training
+process does not have to be repeated again in the future.
+
+
+## ... retrieve physical properties from a part?
+
+The following list of physical properties may be retrieved from a SymCAD part at any time by
+simply requesting the property method on the corresponding part:
+
+  - mass
+  - material volume
+  - displaced volume
+  - surface area
+  - unoriented center of gravity
+  - oriented center of gravity
+  - unoriented center of buoyancy
+  - oriented center of buoyancy
+  - unoriented length
+  - oriented length
+  - unoriented width
+  - oriented width
+  - unoriented height
+  - oriented height
+
+```python
+# Example of accessing some physical properties for a part
+print('Displaced Volume:', part.displaced_volume)
+print('Center of Gravity (Unoriented):', part.unoriented_center_of_gravity)
+```
+
+For properties that contain both an `oriented` and an `unoriented` version, the `unoriented`
+version will return the corresponding property as if the part were created with an orientation
+of 0\u00B0 yaw, 0\u00B0 pitch, and 0\u00B0 roll. The `oriented` version will return the
+corresponding property using the orientation of the underlying part as specified by the user
+(even if that orientation is symbolic).
 
 
 ## ... create an assembly using Assembly-by-Placement?
 
-TODO
+Assembly-by-Placement is used to allow for complete control over the precise placement and
+orientation of every part within an assembly (represented by the `symcad.core.Assembly` class).
+This mode is the default for all SymPart components for which none of the
+`add_attachment_point()`, `attach()`, `add_connection_port()`, or `connect()` methods have
+been called. In this case, the placement of a part will be represented by three symbolic
+parameters representing the origin/center-of-placement of the part in its own coordinate
+space, as well as three additional symbolic coordinates representing the placement of the
+origin of the part in the global coordinate space.
+
+The coordinates for the origin of the part are expected to fall in the range `[0.0, 1.0]` and
+are relative to the x-axis length, y-axis width, and z-axis height of the part. The coordinates
+for the global placement of the part are absolute measurements in units of meters. If one or
+more of these parameters should be set to a concrete value while the other parameters remain
+symbolic, the `set_placement()` method may be called with a value of `None` for all parameters
+which are intended to remain symbolic:
+
+```python
+concrete_part.set_placement(placement=(None, 0, 0), local_origin=(0.5, 0.5, None))
+```
+
+In this example, the local origin of the part will be placed halfway along its x- and y-axis, while
+its z-component will remain symbolic. Likewise, the x-placement of the part will be symbolic,
+while the y- and z-coordinates of the placement will be set to 0, as can be seen when printing
+the free parameters of an assembly containing this part:
+
+```python
+# Partially place a concrete part in an assembly
+concrete_part = Sphere('TestSphere').set_geometry(radius_m=1.0)
+concrete_part.set_placement(placement=(None, 0, 0), local_origin=(0.5, 0.5, None))
+assembly.add_part(concrete_part)
+print('Free Parameters:', assembly.get_free_parameters())
+
+# Output should be:
+# Free Parameters: ['TestSphere_origin_z', 'TestSphere_placement_x']
+```
+
+In summary, to utilize Assembly-by-Placement, simply call the `add_part()` method of a
+`symcad.core.Assembly` to add all parts that have been placed using their respective
+`set_placement()` methods (or not placed at all, in which case, the placements will be
+symbolic):
+
+```python
+from symcad.core import Assembly
+from symcad.parts import Cuboid, Cylinder, Sphere
+
+# Create random components
+box = Cuboid('RandomBox')\\
+   .set_geometry(length_m=0.12, width_m=0.08, height_m=0.22)
+cylinder = Cylinder('RandomCylinder')\\
+   .set_geometry(radius_m=0.22, height_m=0.6)\\
+   .set_orientation(roll_deg=0, pitch_deg=90.0, yaw_deg=0)
+sphere = Sphere('RandomSphere')\\
+   .set_geometry(radius_m=0.20)
+
+# Manually place all components in the assembly
+box.set_placement(placement=(0, 0, 0), local_origin=(0, 0.5, 0.5))
+cylinder.set_placement(placement=(0.12, 0, 0), local_origin=(0.5, 0.5, 0))
+sphere.set_placement(placement=(0.72, 0, 0), local_origin=(0, 0.5, 0.5))
+
+# Create and export an Assembly-by-Placement
+assembly = Assembly('AssemblyByPlacement')
+assembly.add_part(box)
+assembly.add_part(cylinder)
+assembly.add_part(sphere)
+assembly.export('assembly_by_placement_example.FCStd', 'freecad')
+```
 
 
 ## ... create an assembly using Assembly-by-Attachment?
 
-TODO
+Assembly-by-Attachment is used to automate the process of placing rigidly attached parts within a
+`symcad.core.Assembly`. Using this placement method, the intricacies of part placement can be
+relegated to the SymCAD library which may greatly simplify the number of free variables in the
+resulting symbolic assembly.
+
+In order to use this methodology, individual `SymPart` components must define one or more
+*attachment points* using the `add_attachment_point()` method, which defines a point in the local
+coordinate system of the part that can rigidly attach to other parts:
+
+```python
+from symcad.core import Assembly
+from symcad.parts import Cuboid, Cylinder, Sphere
+
+# Create random components
+box = Cuboid('RandomBox')\\
+   .set_geometry(length_m=0.12, width_m=0.08, height_m=0.22)\\
+   .add_attachment_point('BoxAttachment', x=1.0, y=0.5, z=0.5)
+cylinder = Cylinder('RandomCylinder')\\
+   .set_geometry(radius_m=0.22, height_m=0.6)\\
+   .set_orientation(roll_deg=0, pitch_deg=90.0, yaw_deg=0)\\
+   .add_attachment_point('FrontAttachment', x=0.5, y=0.5, z=0)\\
+   .add_attachment_point('RearAttachment', x=0.5, y=0.5, z=1)
+sphere = Sphere('RandomSphere')\\
+   .set_geometry(radius_m=0.20)\\
+   .add_attachment_point('SphereAttachment', x=0, y=0.5, z=0.5)
+
+# Create an Assembly-by-Attachment
+assembly = Assembly('AssemblyByAttachment')
+cylinder.attach('FrontAttachment', box, 'BoxAttachment')\\
+        .attach('RearAttachment', sphere, 'SphereAttachment')
+assembly.add_part(box)
+assembly.add_part(cylinder)
+assembly.add_part(sphere)
+
+# Globally place the box and and export the assembly
+box.set_placement(placement=(0, 0, 0), local_origin=(0, 0.5, 0.5))
+assembly.export('assembly_by_attachment_example.FCStd', 'freecad')
+```
+
+Note that when using Assembly-by-Attachment, there is no need to call the `set_placement()` method
+of a `SymPart` since its placement will be defined by the rigid attachments it makes to other
+parts. The `set_placement()` method **should** be called on one single part, however, in order to
+globally place the entire assembly at a known location. Also note that a mixture of
+Assembly-by-Placement and Assembly-by-Attachment can be used to fully define the internal structure
+of an assembly.
+
+
+## ... retrieve physical properties from an assembly?
+
+The physical properties of a composite assembly can be retrieved in much the same way as the
+individual properties of a `SymPart`, namely by calling a method corresponding to the desired
+physical property on an instance of the `symcad.core.Assembly` being examined.
+
+The available properties for an assembly include: 
+  - mass
+  - material volume
+  - displaced volume
+  - surface_area
+  - center of gravity
+  - center of buoyancy
+  - length
+  - width
+  - height.
+
+Note that there is no differentiation between `oriented` and `unoriented` properties for an
+assembly, since this is a mostly useless distinction when examining cumulative properties:
+
+```python
+# Example of accessing some physical properties of an assembly
+print('Displaced Volume: assembly.displaced_volume())
+print('Center of Gravity: assembly.center_of_gravity())
+```
 
 
 ## ... access properties of subsets of parts in an Assembly?
 
-TODO: Use "collections" in Assembly
+Once created, it may be necessary to obtain the physical or geometric properties of only a subset
+of the parts contained within an assembly. In order to achieve this, parts can be grouped into
+so-called *collections* when added to a `symcad.core.Assembly` using the `add_part()` method. This
+method has the following signature, where the optional `include_in_collections` parameter may be
+used to specify a list of collection names to which the part should be added:
 
+```python
+def add_part(self, shape: SymPart, include_in_collections: List[str] = [])
+```
 
-## ... detect part interferences within an Assembly?
+Once added to one or more collections, the geometric properties of the `SymPart` components
+contained in any number of those collections may be accessed by specifying the collections of
+interest in the corresponding property accessor of the `symcad.core.Assembly` object. For example,
+to identify the center of gravity of a collection of green balls within an assembly containing
+both green and blue balls, the following may be carried out:
 
-TODO
+```python
+from symcad.core import Assembly
+from symcad.parts import Sphere
+
+# Add a number of blue and green balls to an assembly
+assembly = Assembly('BallContainer')
+for idx in range(10):
+   blue_ball = Sphere('BlueBall' + str(idx))
+   green_ball = Sphere('GreenBall' + str(idx))
+   assembly.add_part(blue_ball.set_geometry(radius_m=0.1), ['blue_balls'])
+   assembly.add_part(green_ball.set_geometry(radius_m=0.1), ['green_balls'])
+
+# Retrieve the center of gravity of only the green balls
+print(assembly.center_of_gravity(['green_balls']))
+```
 
 
 ## ... load concrete values for the free parameters in an assembly?
@@ -593,18 +815,39 @@ concrete_params = {
 concrete_assembly = assembly.make_concrete(concrete_params)
 ```
 
-Note that this method returns a *copy* of the assembly with as many concrete parameters as
-possible, but the original assembly object remains unaltered.
+Note that this method returns a *copy* of the assembly with as many concrete parameters filled in
+as possible, but the original assembly object remains unaltered.
 
 
-## ... retrieve physical properties from a part?
+## ... detect part interferences within an Assembly?
 
-TODO
+Once a concrete assembly has been created, it is possible to check for part interferences by
+calling the `check_interferences()` method on the assembly object:
 
+```python
+from symcad.core import Assembly
+from symcad.parts import Sphere
 
-## ... retrieve physical properties from an assembly?
+# Create two random spheres
+sphere1 = Sphere('Sphere1').set_geometry(radius_m=0.1)
+sphere2 = Sphere('Sphere2').set_geometry(radius_m=0.1)
 
-TODO
+# Add the spheres to an assembly and place them so that they overlap
+assembly = Assembly('InterferenceAssembly')
+assembly.add_part(sphere1)
+assembly.add_part(sphere2)
+sphere1.set_placement(placement=(0, 0, 0), local_origin=(0.5, 0.5, 0.5))
+sphere2.set_placement(placement=(0.1, 0, 0), local_origin=(0.5, 0.5, 0.5))
+
+# Output the result of an interference check
+print('The following parts interference: {}'.format(assembly.check_interferences()))
+# Should output: [('Sphere1', 'Sphere2')]
+```
+
+This will return a list of pairs, where each pair indicates two `SymPart` objects within the
+assembly that interfere with one another. Note that if your assembly contains any symbolic
+parameters or placements, you must first create a concrete version by calling
+`assembly.make_concrete(params)` or this method will raise a runtime exception.
 
 
 ## ... export a CAD model into a specific format?
@@ -647,6 +890,8 @@ concrete geometric parameters but was constructed via
 
 TODO: Implement this (part.get_valid_states, list of state for each part,
 part.set_state called before retrieving desired property, assembly.set_state, etc.)
+def set_state(self: SymPartSub, state_names: Union[List[str], None]) -> SymPartSub:
+def get_valid_states(self: SymPartSub) -> List[str]:
 
 
 ## ... create a design using the JSON Graph API?
@@ -681,8 +926,7 @@ each of which fully specifies a unique SymCAD part in the assembly. Its fields a
                 symbolic values are specified as strings
   - `material_density`: Uniform material density of the part in `kg/m^3`
   - `placement_point`: Dictionary containing the center of placement of the part (as a percentage
-                       of its x-length, y-width, and z-height in the range `[0.0, 1.0]`) and its
-                       attachment offset in `m`
+                       of its x-length, y-width, and z-height in the range `[0.0, 1.0]`)
   - `attachment_points`: List of dictionaries, each containing the location of an attachment point
                          on the part (as a percentage of its x-length, y-width, and z-height in the
                          range `[0.0, 1.0]`)
