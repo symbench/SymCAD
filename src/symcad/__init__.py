@@ -888,10 +888,27 @@ concrete geometric parameters but was constructed via
 
 ## ... add custom states and retrieve custom-state properties?
 
-TODO: Implement this (part.get_valid_states, list of state for each part,
-part.set_state called before retrieving desired property, assembly.set_state, etc.)
-def set_state(self: SymPartSub, state_names: Union[List[str], None]) -> SymPartSub:
-def get_valid_states(self: SymPartSub) -> List[str]:
+Custom states are useful for manipulating parts and assemblies with moveable components or
+multiple geometric configurations. Essentially, a `SymPart` is able to define its own set of
+custom states that can be used to alter its CAD representation or its set of symbolic properties.
+For example, a *Pitch Control* part may have three internal custom states corresponding to the
+configurations necessary to achieve its minimum, maximum, and neutral pitch angles.
+
+In order to add custom states to a `SymPart`, the part should implement the
+`get_valid_states()` method from the `symcad.core.SymPart` class to return a list of strings
+corresponding to all valid states that the part is able to be configured for. To configure
+a part for a specific state, the `set_state()` method should be called on the part object.
+Note that this method takes a *list* of state names, making it possible to configure a
+`SymPart` for multiple states at the same time (e.g., minimum pitch and neutral roll).
+
+Since it is possible that several parts may share the same custom state name, it is easy to set
+all parts in an assembly to the same configuration by calling the
+`set_state(state_names: Union[List[str], None])` method on the assembly object itself. If a part
+within the assembly does not recognize a state listed in the `state_names` parameter, that part
+will simply ignore it. Note that `state_names` may contain any number of states for which to
+configure the assembly. An example of a part and assembly that utilizes custom states can be
+found in `custom_states.py` in the `examples` directory of the
+[SymCAD Repository](https://github.com/SymBench/SymCAD).
 
 
 ## ... create a design using the JSON Graph API?
@@ -941,6 +958,11 @@ each of which fully specifies a unique SymCAD part in the assembly. Its fields a
                         are specified as floating point numbers, while symbolic values are
                         specified as strings
   - `is_exposed`: Boolean indicating whether the part is exposed to its surrounding environment
+
+
+## ... train a neural network to represent the physical properties of a SymPart?
+
+TODO
 
 
 # API Documentation
