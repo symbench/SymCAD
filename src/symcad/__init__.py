@@ -728,7 +728,7 @@ The physical properties of a composite assembly can be retrieved in much the sam
 individual properties of a `SymPart`, namely by calling a method corresponding to the desired
 physical property on an instance of the `symcad.core.Assembly` being examined.
 
-The available properties for an assembly include: 
+The available properties for an assembly include:
   - mass
   - material volume
   - displaced volume
@@ -962,7 +962,64 @@ each of which fully specifies a unique SymCAD part in the assembly. Its fields a
 
 ## ... train a neural network to represent the physical properties of a SymPart?
 
-TODO
+The easiest way to train a neural network to represent the physical properties of a `SymPart`
+depends on how the part was created. If a fully custom `symcad.core.SymPart` was created, you
+should simply ensure that the `SymPart` initializer (`super().__init__`) is called with an
+appropriate storage path for the neural network:
+
+```python
+class NewShape(SymPart):
+   def __init__(self, identifier: str, material_density_kg_m3: float) -> None:
+      super().__init__(identifier, 'path_to_cad_file.FCStd', 'path_to_neural_net.tar.xz', material_density_kg_m3)
+```
+
+Note that the neural network path should always be in the `*.tar.xz` format. If the neural net
+does not exist, it will be trained and stored the first time the new `SymPart` is created, without
+any intervention required on the part of the user.
+
+If the part is created through the `symcad.parts.generic.Custom` interface, simply ensure that
+the `pretrained_geometric_properties_model` initializer parameter is set to an appropriate storage
+path:
+
+```python
+new_part = Custom('PartType', 'PartID', creation_callback, 'PartType.tar.xz')
+```
+
+As above, the network will automatically be trained the first time the `Custom` part is created.
+
+There is also an advanced method to train the neural network for a given `SymPart` which should
+be used if you only need to learn a subset of the possible physical properties for a part
+(such as only learning the z-component of the center of gravity). Using this method involves
+creating an instance of your custom part **without** specifying a path to its neural network,
+and using this instance to manually train the network for the properties of interest:
+
+```python
+from symcad.core.ML import NeuralNetTrainer
+from symcad.parts import Custom
+
+# Specify your new custom part and the desired filename for its network
+new_part = Custom('CustomType', 'TrainingPart', creation_callback)
+neural_net_filename = 'custom_type.tar.xz'
+
+# Create a trainer to learn the physical properties of interest
+trainer = NeuralNetTrainer(new_part, ['material_volume', 'cg_z'])
+trainer.learn_parameters(32)
+trainer.save(neural_net_filename)
+```
+
+In the above example, the list of physical properties that are available for the neural network
+to learn is the same as the list of properties retrievable from the underlying CAD model:
+
+  - Lengths: `xlen`, `ylen`, `zlen`
+  - Centers of Gravity: `cg_x`, `cg_y`, `cg_z`
+  - Centers of Buoyancy: `cb_x`, `cb_y`, `cb_z`
+  - Volume and Area: `material_volume`, `displaced_volume`, `surface_area`
+
+The `learn_parameters` method expects a batch size to be passed in as a parameter. If you unsure
+of what value to use, `32` seems to work well.
+
+Once training has completed, you should move the stored neural network to an appropriate location,
+and it can then be specified in the constructor of your new part for future use.
 
 
 # API Documentation
