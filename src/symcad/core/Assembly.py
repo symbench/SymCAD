@@ -298,6 +298,32 @@ class Assembly(object):
       return sorted(free_parameters)
 
 
+   def get_valid_states(self) -> List[str]:
+      """Returns a list of all possible geometric states for which the assembly can be
+      configured."""
+      valid_states = set()
+      for part in self.parts:
+         valid_states.update(part.get_valid_states())
+      return list(valid_states)
+
+
+   def set_state(self, state_names: Union[List[str], None]) -> None:
+      """Sets the geometric configuration of the assembly according to the indicated `state_names`.
+
+      If a part within the assembly does not recognize a state listed in the `state_names`
+      parameter, the part will simply ignore that state. Note that `state_names` may contain any
+      number of states for which to configure the assembly.
+
+      Parameters
+      ----------
+      state_names : `Union[List[str], None]`
+         List of geometric states for which all parts in the assembly should be configured. If
+         set to `None`, all parts will be configured in their default state.
+      """
+      for part in self.parts:
+         part.set_state(state_names)
+
+
    def make_concrete(self, params: Optional[Dict[str, float]] = None) -> Assembly:
       """
       Creates a copy of the current `Assembly` with all free parameters set to their concrete
@@ -553,12 +579,9 @@ class Assembly(object):
             part_mass = part.mass
             part_placement = part.static_placement
             part_center_of_gravity = part.oriented_center_of_gravity
-            center_of_gravity_x += ((part_placement.x + part_center_of_gravity[0])
-                                    * part_mass)
-            center_of_gravity_y += ((part_placement.y + part_center_of_gravity[1])
-                                    * part_mass)
-            center_of_gravity_z += ((part_placement.z + part_center_of_gravity[2])
-                                    * part_mass)
+            center_of_gravity_x += ((part_placement.x + part_center_of_gravity[0]) * part_mass)
+            center_of_gravity_y += ((part_placement.y + part_center_of_gravity[1]) * part_mass)
+            center_of_gravity_z += ((part_placement.z + part_center_of_gravity[2]) * part_mass)
             mass += part_mass
       return Coordinate(assembly.name + '_center_of_gravity',
                         x=center_of_gravity_x / mass,

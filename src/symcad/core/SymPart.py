@@ -265,6 +265,7 @@ class SymPart(metaclass=abc.ABCMeta):
       """
       self.current_states = [] if not state_names else \
                             [state for state in state_names if state in self.get_valid_states()]
+      return self
 
 
    def set_unexposed(self: SymPartSub) -> SymPartSub:
