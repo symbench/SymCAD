@@ -93,7 +93,7 @@ Internal conventions assumed by the library are as follows:
                             a UUV fairing as the basis:
 
   <p align="center">
-    <img width="500" src="https://drive.google.com/uc?export=view&id=1162lIJM2RRcl3k5UERVeiOLCX7NxhPHg">
+    <img width="500" src="https://symbench.github.io/SymCAD/images/CoordinateSystem.png">
   </p>
   - **Local coordinate system**: The coordinate system used internally by each part to indicate
                                  the locations of its attachment and connection points, as well
@@ -127,7 +127,7 @@ Internal conventions assumed by the library are as follows:
               inside the vehicle).
 
   <p align="center">
-    <img width="550" src="https://drive.google.com/uc?export=view&id=1AHDRsIdpbRMT7GXeODncCEorC3S5only">
+    <img width="550" src="https://symbench.github.io/SymCAD/images/RollPitchYaw.png">
   </p>
   - **Default orientation**: If not explicitly defined, the default orientation of a part will be
                              `(0, 0, 0)`, indicating no change from its default orientation.
