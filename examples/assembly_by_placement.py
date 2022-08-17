@@ -3,7 +3,7 @@
 from symcad.core import Assembly
 from symcad.parts import Cylinder, FlangedFlatPlate, Pipe, Sphere
 
-def symbolic_assembly():
+def symbolic_assembly_by_placement():
 
    # Create random symbolic components
    front_endcap = FlangedFlatPlate('FrontEndcap', 1000.0)\
@@ -71,7 +71,7 @@ def symbolic_assembly():
            .export('assembly_by_placement_symbolic.FCStd', 'freecad')
 
 
-def concrete_assembly():
+def concrete_assembly_by_placement():
 
    # Create random concrete components
    front_endcap = FlangedFlatPlate('FrontEndcap', 1000.0)\
@@ -108,5 +108,5 @@ def concrete_assembly():
 
 if __name__ == '__main__':
 
-   concrete_assembly()
-   symbolic_assembly()
+   concrete_assembly_by_placement()
+   symbolic_assembly_by_placement()

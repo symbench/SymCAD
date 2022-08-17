@@ -94,8 +94,8 @@ class NeuralNet(object):
                self.networks[network_name].eval()
       for network_name in self.networks.keys():
          self.sympy_networks[network_name] = type(part_type_name + '_' + network_name,
-                                                   (NeuralFunc,),
-                                                   {'arity': len(self.param_order),
+                                                  (NeuralFunc,),
+                                                  {'arity': len(self.param_order),
                                                    'network': self.networks[network_name]})
 
 
