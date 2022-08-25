@@ -115,6 +115,15 @@ class EllipticPipe(GenericShape):
                         thickness=thickness_m)
       return self
 
+   def get_geometric_parameter_bounds(self, parameter: str) -> Tuple[float, float]:
+      parameter_bounds = {
+         'major_radius': (0.0, 2.0),
+         'minor_radius': (0.0, 2.0),
+         'height': (0.0, 2.0),
+         'thickness': (0.0, 0.05)
+      }
+      return parameter_bounds.get(parameter, (0.0, 0.0))
+
 
    # Geometric properties -------------------------------------------------------------------------
 

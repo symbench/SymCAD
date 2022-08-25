@@ -130,6 +130,9 @@ class Custom(GenericShape):
          self.__cad_props__ = None
       return self
 
+   def get_geometric_parameter_bounds(self, _parameter: str) -> Tuple[float, float]:
+      return 0.0, 2.0
+
 
    # Geometric properties -------------------------------------------------------------------------
 

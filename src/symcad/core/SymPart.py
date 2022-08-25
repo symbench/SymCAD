@@ -502,6 +502,21 @@ class SymPart(metaclass=abc.ABCMeta):
       """
       raise NotImplementedError
 
+   @abc.abstractmethod
+   def get_geometric_parameter_bounds(self: SymPartSub, parameter: str) -> Tuple[float, float]:
+      """Abstract method that must be overridden by a concrete `SymPart` class to return the
+      minimum and maximum expected bounds for a given geometric parameter.
+
+      Parameters
+      ----------
+      parameter : `str`
+         Name of the geometric parameter for which to return the minimum and maximum bounds.
+
+      Returns
+      -------
+      `Tuple[float, float]`
+         Minimum and maximum bounds for the specified geometric `parameter`."""
+
    def get_valid_states(self: SymPartSub) -> List[str]:
       """Method that may be overridden by a concrete `SymPart` class to indicate the list of
       geometric state names recognized by the part.

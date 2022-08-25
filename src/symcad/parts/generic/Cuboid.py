@@ -79,6 +79,14 @@ class Cuboid(GenericShape):
       self.geometry.set(length=length_m, width=width_m, height=height_m)
       return self
 
+   def get_geometric_parameter_bounds(self, parameter: str) -> Tuple[float, float]:
+      parameter_bounds = {
+         'length': (0.0, 2.0),
+         'width': (0.0, 2.0),
+         'height': (0.0, 2.0)
+      }
+      return parameter_bounds.get(parameter, (0.0, 0.0))
+
 
    # Geometric properties -------------------------------------------------------------------------
 

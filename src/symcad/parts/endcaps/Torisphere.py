@@ -104,6 +104,15 @@ class Torisphere(EndcapShape):
                         thickness=thickness_m)
       return self
 
+   def get_geometric_parameter_bounds(self, parameter: str) -> Tuple[float, float]:
+      parameter_bounds = {
+         'base_radius': (0.0, 2.0),
+         'crown_ratio': (0.0, 1.0),
+         'knuckle_ratio': (0.06, 1.0),
+         'thickness': (0.0, 0.05)
+      }
+      return parameter_bounds.get(parameter, (0.0, 0.0))
+
 
    # Geometric properties -------------------------------------------------------------------------
 

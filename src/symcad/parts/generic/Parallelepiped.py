@@ -105,6 +105,15 @@ class Parallelepiped(GenericShape):
                         lh_angle=length_height_angle_rad)
       return self
 
+   def get_geometric_parameter_bounds(self, parameter: str) -> Tuple[float, float]:
+      parameter_bounds = {
+         'length': (0.0, 2.0),
+         'width': (0.0, 2.0),
+         'height': (0.0, 2.0),
+         'lh_angle': (0.0, 0.5 * math.pi)
+      }
+      return parameter_bounds.get(parameter, (0.0, 0.0))
+
 
    # Geometric properties -------------------------------------------------------------------------
 

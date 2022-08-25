@@ -104,6 +104,14 @@ class Pyramid(GenericShape):
       self.geometry.set(num_edges=num_edges, edge_length=edge_length_m, height=height_m)
       return self
 
+   def get_geometric_parameter_bounds(self, parameter: str) -> Tuple[float, float]:
+      parameter_bounds = {
+         'num_edges': (3, 12),
+         'edge_length': (0.0, 1.0),
+         'height': (0.0, 2.0)
+      }
+      return parameter_bounds.get(parameter, (0.0, 0.0))
+
 
    # Built-in function overrides ------------------------------------------------------------------
 
