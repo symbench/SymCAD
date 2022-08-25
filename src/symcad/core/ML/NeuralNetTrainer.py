@@ -18,8 +18,10 @@ from pathlib import Path
 from typing import Dict, List, Tuple, TypeVar
 import copy, io, tarfile, torch
 
-SymPart = TypeVar('SymPart', bound='SymPart')
+SymPart = TypeVar('SymPart')
 
+MIN_INPUT_VALUE = -1.0
+MAX_INPUT_VALUE = 1.0
 NUM_BATCHES_PER_EPOCH = 25
 NUM_NON_BEST_EPOCHS_TO_TERMINATE = 10
 
@@ -34,6 +36,12 @@ class NeuralNetTrainer(object):
 
    geometry: Dict[str, float]
    """Dictionary of geometric properties to learn."""
+
+   geometry_stats: Dict[str, Tuple[float, float, float, float]]
+   """Dictionary of bounds, scalers, and biases on the geometric properties to learn."""
+
+   geometry_generators: Dict[str, torch.distributions.distribution.Distribution]
+   """Dictionary of uniform data generators for the geometric properties to learn."""
 
    networks: Dict[str, torch.nn.Module]
    """Dictionary of neural networks corresponding 1-to-1 to each geometric property to learn."""
@@ -68,6 +76,17 @@ class NeuralNetTrainer(object):
       self.optimizers = {}
       self.best_networks = {}
       self.geometry = part.geometry.as_dict()
+      self.geometry_stats = {}
+      self.geometry_generators = {}
+      for param in self.geometry.keys():
+         bounds = part.get_geometric_parameter_bounds(param)
+         desired_range = MAX_INPUT_VALUE - MIN_INPUT_VALUE
+         actual_range = bounds[1] - bounds[0]
+         scaler = desired_range / actual_range
+         bias = MIN_INPUT_VALUE - bounds[0]
+         self.geometry_stats[param] = bounds[0], bounds[1], scaler, bias
+         self.geometry_generators[param] = torch.distributions.uniform.Uniform(bounds[0],
+                                                                               bounds[1])
       for cad_param in cad_params_to_learn:
          network = torch.nn.Sequential(
             torch.nn.Linear(len(self.geometry), 10),
@@ -84,19 +103,20 @@ class NeuralNetTrainer(object):
    def _generate_data(self, num_points: int) -> Tuple[List[float], Dict[str, List[float]]]:
 
       # Generate all necessary PyTorch data structures
-      inputs = torch.rand(num_points, len(self.geometry))
+      inputs = torch.empty(num_points, len(self.geometry))
       outputs = { cad_param: torch.empty(num_points, 1) for cad_param in self.networks.keys() }
 
-      # Determine the expected geometric outputs given the randomized input parameters
+      # Determine the expected geometric outputs given randomized input parameters
       datum = 0
       while datum < num_points:
-         for idx, param in enumerate(self.geometry.keys()):
-            self.geometry[param] = inputs[datum, idx].item()
-         self.sympart.geometry.set(**self.geometry)
          try:
+            for idx, param_and_stat in enumerate(self.geometry_stats.items()):
+               param, stat = param_and_stat
+               self.geometry[param] = self.geometry_generators[param].sample().item()
+               inputs[datum, idx] = (self.geometry[param] * stat[2]) + stat[3]
+            self.sympart.geometry.set(**self.geometry)
             props = self.sympart.get_cad_physical_properties(True)
          except Exception:
-            inputs[datum] = torch.rand(len(self.geometry))
             continue
          for cad_param in self.networks.keys():
             outputs[cad_param][datum] = props[cad_param]
@@ -121,6 +141,8 @@ class NeuralNetTrainer(object):
       # Initialize loss structures and ensure that all networks are in training mode
       print('Training neural nets for the "{}" part'.format(self.sympart.name))
       print('Input geometric parameters: {}'.format(list(self.geometry.keys())))
+      print('Geometric parameter bounds: {}'.format(
+         {key: (stats[0], stats[1]) for key, stats in self.geometry_stats.items()}))
       print('Properties being trained: {}'.format(list(self.networks.keys())))
       best_losses = {}
       running_losses = {}
@@ -146,12 +168,14 @@ class NeuralNetTrainer(object):
                optimizer.zero_grad()
                loss.backward()
                optimizer.step()
-               running_losses[network_name] += loss.item()
+               current_loss = loss.item()
+               running_losses[network_name] += current_loss
+               print('   Network: {}, Sub-Epoch Loss: {}'.format(network_name, current_loss))
 
          # Determine whether the current network has improved the overall training loss
          networks_complete =[]
          for network_name, network in remaining_networks.items():
-            print("Network: {}, Loss: {}"
+            print('Network: {}, Loss: {}'
                   .format(network_name, running_losses[network_name] / NUM_BATCHES_PER_EPOCH))
             if running_losses[network_name] < best_losses[network_name]:
                epochs_since_best_loss[network_name] = 0
@@ -178,10 +202,15 @@ class NeuralNetTrainer(object):
 
       # Convert all networks to TorchScript, save them, and zip them into a XZ tarball
       with tarfile.open(file_path, 'w:xz') as zip_file:
-         param_order = ';'.join(self.geometry.keys())
+         param_order = ';'.join(self.geometry.keys()).encode('utf-8')
          file_info = tarfile.TarInfo('param_order.txt')
          file_info.size = len(param_order)
-         zip_file.addfile(file_info, io.BytesIO(param_order.encode('utf-8')))
+         zip_file.addfile(file_info, io.BytesIO(param_order))
+         param_stats = ';'.join([key+':'+str(val) for key, val
+                                                  in self.geometry_stats.items()]).encode('utf-8')
+         file_info = tarfile.TarInfo('param_stats.txt')
+         file_info.size = len(param_stats)
+         zip_file.addfile(file_info, io.BytesIO(param_stats))
          for network_name, network in self.best_networks.items():
             scripted_model = torch.jit.script(network.eval())
             model_bytes = torch.jit.freeze(scripted_model).save_to_buffer()

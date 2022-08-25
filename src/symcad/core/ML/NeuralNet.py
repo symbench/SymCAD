@@ -16,7 +16,7 @@
 
 from constraint_prog.sympy_func import NeuralFunc
 from .NeuralNetTrainer import NeuralNetTrainer
-from typing import Dict, List, Optional, TypeVar, Union
+from typing import Dict, List, Optional, Tuple, TypeVar, Union
 from ..CAD import CadGeneral
 from pathlib import Path
 import io, tarfile, torch
@@ -37,6 +37,9 @@ class NeuralNet(object):
 
    param_order: List[str]
    """List containing the expected input order of geometric parameters to each neural network."""
+
+   param_transformations: Dict[str, Tuple[float, float, float, float]]
+   """Dictionary of bounds, scalers, and biases for each geometric parameter in the neural net."""
 
 
    # Constructor ----------------------------------------------------------------------------------
@@ -59,6 +62,7 @@ class NeuralNet(object):
       self.networks = {}
       self.sympy_networks = {}
       self.param_order = []
+      self.param_transformations = {}
 
       # Ensure that the neural network exists and has been trained
       net_file_path = CadGeneral.CAD_BASE_PATH.joinpath(net_storage_path).absolute().resolve()
@@ -87,6 +91,11 @@ class NeuralNet(object):
             file = zip_file.extractfile(filename)
             if filename == 'param_order.txt':
                self.param_order = file.read().decode('utf-8').split(';')
+            elif filename == 'param_stats.txt':
+               stats = file.read().decode('utf-8').split(';')
+               for stat in stats:
+                  param, val = stat.split(':')
+                  self.param_transformations[param] = eval(val)
             else:
                network_bytes = io.BytesIO(file.read())
                network_name = '.'.join(filename.split('.')[:-1])
@@ -126,10 +135,12 @@ class NeuralNet(object):
       if all([isinstance(val, float) or isinstance(val, int) for val in kwargs.values()]):
          inputs = torch.empty(len(self.param_order))
          for idx, param in enumerate(self.param_order):
-            inputs[idx] = kwargs.get(param)
+            transforms = self.param_transformations[param]
+            inputs[idx] = (kwargs.get(param) * transforms[2]) + transforms[3]
          return self.networks[property](inputs).item()
       else:
          inputs = []
          for param in self.param_order:
-            inputs.append(kwargs.get(param))
+            transforms = self.param_transformations[param]
+            inputs.append((kwargs.get(param) * transforms[2]) + transforms[3])
          return self.sympy_networks[property](*inputs)
