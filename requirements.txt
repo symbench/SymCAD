@@ -1,20 +1,20 @@
-numpy
-sympy
+numpy>=1.19
+sympy>=1.9
+torch>=1.9
 pdoc
-torch
 constraint-prog@git+https://github.com/symbench/constraint-prog
-PyFreeCAD@https://symbench.github.io/PyFreeCAD/packages/PyFreeCAD-0.20.0-py38-none-win_amd64.tar.xz; platform_system=='Windows' and platform_machine=='AMD64' and python_version=='3.8'
-PyFreeCAD@https://symbench.github.io/PyFreeCAD/packages/PyFreeCAD-0.20.0-py39-none-win_amd64.tar.xz; platform_system=='Windows' and platform_machine=='AMD64' and python_version=='3.9'
-PyFreeCAD@https://symbench.github.io/PyFreeCAD/packages/PyFreeCAD-0.20.0-py310-none-win_amd64.tar.xz; platform_system=='Windows' and platform_machine=='AMD64' and python_version=='3.10'
-PyFreeCAD@https://symbench.github.io/PyFreeCAD/packages/PyFreeCAD-0.20.0-py38-none-manylinux1_x86_64.tar.xz; platform_system=='Linux' and platform_machine=='x86_64' and python_version=='3.8'
-PyFreeCAD@https://symbench.github.io/PyFreeCAD/packages/PyFreeCAD-0.20.0-py39-none-manylinux1_x86_64.tar.xz; platform_system=='Linux' and platform_machine=='x86_64' and python_version=='3.9'
-PyFreeCAD@https://symbench.github.io/PyFreeCAD/packages/PyFreeCAD-0.20.0-py310-none-manylinux1_x86_64.tar.xz; platform_system=='Linux' and platform_machine=='x86_64' and python_version=='3.10'
-PyFreeCAD@https://symbench.github.io/PyFreeCAD/packages/PyFreeCAD-0.20.0-py38-none-manylinux1_aarch64.tar.xz; platform_system=='Linux' and platform_machine=='aarch64' and python_version=='3.8'
-PyFreeCAD@https://symbench.github.io/PyFreeCAD/packages/PyFreeCAD-0.20.0-py39-none-manylinux1_aarch64.tar.xz; platform_system=='Linux' and platform_machine=='aarch64' and python_version=='3.9'
-PyFreeCAD@https://symbench.github.io/PyFreeCAD/packages/PyFreeCAD-0.20.0-py310-none-manylinux1_aarch64.tar.xz; platform_system=='Linux' and platform_machine=='aarch64' and python_version=='3.10'
-PyFreeCAD@https://symbench.github.io/PyFreeCAD/packages/PyFreeCAD-0.20.0-py38-none-macosx_11_arm64.tar.xz; platform_system=='Darwin' and platform_machine=='arm64' and python_version=='3.8'
-PyFreeCAD@https://symbench.github.io/PyFreeCAD/packages/PyFreeCAD-0.20.0-py39-none-macosx_11_arm64.tar.xz; platform_system=='Darwin' and platform_machine=='arm64' and python_version=='3.9'
-PyFreeCAD@https://symbench.github.io/PyFreeCAD/packages/PyFreeCAD-0.20.0-py310-none-macosx_11_arm64.tar.xz; platform_system=='Darwin' and platform_machine=='arm64' and python_version=='3.10'
-#PyFreeCAD@https://symbench.github.io/PyFreeCAD/packages/PyFreeCAD-0.20.0-py38-none-macosx_11_x86_64.tar.xz; platform_system=='Darwin' and platform_machine=='x86_64' and python_version=='3.8'
-#PyFreeCAD@https://symbench.github.io/PyFreeCAD/packages/PyFreeCAD-0.20.0-py39-none-macosx_11_x86_64.tar.xz; platform_system=='Darwin' and platform_machine=='x86_64' and python_version=='3.9'
-#PyFreeCAD@https://symbench.github.io/PyFreeCAD/packages/PyFreeCAD-0.20.0-py310-none-macosx_11_x86_64.tar.xz; platform_system=='Darwin' and platform_machine=='x86_64' and python_version=='3.10'
+PyFreeCAD@https://symbench.github.io/PyFreeCAD/wheels/PyFreeCAD-0.20.0-py38-none-win_amd64.whl; platform_system=='Windows' and platform_machine=='AMD64' and python_version=='3.8'
+PyFreeCAD@https://symbench.github.io/PyFreeCAD/wheels/PyFreeCAD-0.20.0-py39-none-win_amd64.whl; platform_system=='Windows' and platform_machine=='AMD64' and python_version=='3.9'
+PyFreeCAD@https://symbench.github.io/PyFreeCAD/wheels/PyFreeCAD-0.20.0-py310-none-win_amd64.whl; platform_system=='Windows' and platform_machine=='AMD64' and python_version=='3.10'
+PyFreeCAD@https://symbench.github.io/PyFreeCAD/wheels/PyFreeCAD-0.20.0-py38-none-manylinux1_x86_64.whl; platform_system=='Linux' and platform_machine=='x86_64' and python_version=='3.8'
+PyFreeCAD@https://symbench.github.io/PyFreeCAD/wheels/PyFreeCAD-0.20.0-py39-none-manylinux1_x86_64.whl; platform_system=='Linux' and platform_machine=='x86_64' and python_version=='3.9'
+PyFreeCAD@https://symbench.github.io/PyFreeCAD/wheels/PyFreeCAD-0.20.0-py310-none-manylinux1_x86_64.whl; platform_system=='Linux' and platform_machine=='x86_64' and python_version=='3.10'
+PyFreeCAD@https://symbench.github.io/PyFreeCAD/wheels/PyFreeCAD-0.20.0-py38-none-manylinux1_aarch64.whl; platform_system=='Linux' and platform_machine=='aarch64' and python_version=='3.8'
+PyFreeCAD@https://symbench.github.io/PyFreeCAD/wheels/PyFreeCAD-0.20.0-py39-none-manylinux1_aarch64.whl; platform_system=='Linux' and platform_machine=='aarch64' and python_version=='3.9'
+PyFreeCAD@https://symbench.github.io/PyFreeCAD/wheels/PyFreeCAD-0.20.0-py310-none-manylinux1_aarch64.whl; platform_system=='Linux' and platform_machine=='aarch64' and python_version=='3.10'
+PyFreeCAD@https://symbench.github.io/PyFreeCAD/wheels/PyFreeCAD-0.20.0-py38-none-macosx_11_arm64.whl; platform_system=='Darwin' and platform_machine=='arm64' and python_version=='3.8'
+PyFreeCAD@https://symbench.github.io/PyFreeCAD/wheels/PyFreeCAD-0.20.0-py39-none-macosx_11_arm64.whl; platform_system=='Darwin' and platform_machine=='arm64' and python_version=='3.9'
+PyFreeCAD@https://symbench.github.io/PyFreeCAD/wheels/PyFreeCAD-0.20.0-py310-none-macosx_11_arm64.whl; platform_system=='Darwin' and platform_machine=='arm64' and python_version=='3.10'
+PyFreeCAD@https://symbench.github.io/PyFreeCAD/wheels/PyFreeCAD-0.20.0-py38-none-macosx_11_x86_64.whl; platform_system=='Darwin' and platform_machine=='x86_64' and python_version=='3.8'
+PyFreeCAD@https://symbench.github.io/PyFreeCAD/wheels/PyFreeCAD-0.20.0-py39-none-macosx_11_x86_64.whl; platform_system=='Darwin' and platform_machine=='x86_64' and python_version=='3.9'
+PyFreeCAD@https://symbench.github.io/PyFreeCAD/wheels/PyFreeCAD-0.20.0-py310-none-macosx_11_x86_64.whl; platform_system=='Darwin' and platform_machine=='x86_64' and python_version=='3.10'
