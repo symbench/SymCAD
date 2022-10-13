@@ -516,6 +516,7 @@ class SymPart(metaclass=abc.ABCMeta):
       -------
       `Tuple[float, float]`
          Minimum and maximum bounds for the specified geometric `parameter`."""
+      raise NotImplementedError
 
    def get_valid_states(self: SymPartSub) -> List[str]:
       """Method that may be overridden by a concrete `SymPart` class to indicate the list of
