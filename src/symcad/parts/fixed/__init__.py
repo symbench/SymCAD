@@ -98,6 +98,7 @@ class FixedPart(SymPart, metaclass=abc.ABCMeta):
 from .Garmin15HGpsReceiver import Garmin15HGpsReceiver
 from .IridiumCore9523Radio import IridiumCore9523Radio
 from .iXbluePhinsCompactC7Ins import iXbluePhinsCompactC7Ins
+from .NortekDVL1000_4000mDvl import NortekDVL1000_4000mDvl
 from .OceanBottomSeismometer import OceanBottomSeismometer
 from .RaspberryPiZero2Computer import RaspberryPiZero2Computer
 from .TecnadyneModel550Thruster import TecnadyneModel550Thruster
