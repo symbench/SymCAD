@@ -312,5 +312,10 @@ class ModeledCad(object):
       doc.recompute()
 
       # Create the requested CAD format of the model
-      CadGeneral.save_model(file_path, model_type, model)
+      doc_clean = FreeCAD.newDocument('Clean')
+      clean_model = doc_clean.addObject('Part::Feature', 'Model')
+      clean_model.Shape = model.Shape.removeSplitter()
+      doc_clean.recompute()
+      CadGeneral.save_model(file_path, model_type, clean_model)
+      FreeCAD.closeDocument(doc_clean.Name)
       FreeCAD.closeDocument(doc.Name)
