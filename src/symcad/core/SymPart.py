@@ -283,6 +283,23 @@ class SymPart(metaclass=abc.ABCMeta):
       return self
 
 
+   def set_material_density(self: SymPartSub, material_density) -> SymPartSub:
+      """Sets the material density of the SymPart.
+
+      Parameters
+      ----------
+      material_density: `float`
+         Uniform material density in `kg/m^3` to be used in mass property calculations.
+
+      Returns
+      -------
+      self : `SymPart`
+         The current SymPart being manipulated.
+      """
+      self.material_density = material_density
+      return self
+
+
    def add_attachment_point(self: SymPartSub, attachment_point_id: str, *,
                                               x: Union[float, Expr],
                                               y: Union[float, Expr],
