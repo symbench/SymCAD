@@ -23,6 +23,7 @@ from typing import Any, Dict, List, Literal
 from typing import Optional, Set, Tuple, Union
 from collections import defaultdict
 from pathlib import Path
+from sympy import Expr
 
 def _isfloat(num: Any) -> bool:
    """Private helper function to test if a value is float-convertible."""
@@ -85,24 +86,42 @@ class Assembly(object):
             part.static_origin = Coordinate(part.name + '_origin')
          for point in part.attachment_points:
             for key, val in [(k, v) for k, v in point.__dict__.items() if k != 'name']:
+               if isinstance(val, Expr):
+                  val = val.subs(list(params.items()))
+                  setattr(point, key, val)
                if not _isfloat(val) and str(val) in params:
                   setattr(point, key, params[str(val)])
          for point in part.connection_ports:
             for key, val in [(k, v) for k, v in point.__dict__.items() if k != 'name']:
+               if isinstance(val, Expr):
+                  val = val.subs(list(params.items()))
+                  setattr(point, key, val)
                if not _isfloat(val) and str(val) in params:
                   setattr(point, key, params[str(val)])
          for key, val in [(k, v) for k, v in part.geometry.__dict__.items() if k != 'name']:
+            if isinstance(val, Expr):
+               val = val.subs(list(params.items()))
+               setattr(part.geometry, key, val)
             if not _isfloat(val) and str(val) in params:
                setattr(part.geometry, key, params[str(val)])
          for key, val in [(k, v) for k, v in part.orientation.__dict__.items() if k != 'name']:
+            if isinstance(val, Expr):
+               val = val.subs(list(params.items()))
+               setattr(part.orientation, key, val)
             if not _isfloat(val) and str(val) in params:
                setattr(part.orientation, key, params[str(val)])
          for key, val in \
              [(k, v) for k, v in part.static_origin.__dict__.items() if k != 'name']:
+            if isinstance(val, Expr):
+               val = val.subs(list(params.items()))
+               setattr(part.static_origin, key, val)
             if not _isfloat(val) and str(val) in params:
                setattr(part.static_origin, key, params[str(val)])
          for key, val in \
              [(k, v) for k, v in part.static_placement.__dict__.items() if k != 'name']:
+            if isinstance(val, Expr):
+               val = val.subs(list(params.items()))
+               setattr(part.static_placement, key, val)
             if not _isfloat(val) and str(val) in params:
                setattr(part.static_placement, key, params[str(val)])
 
