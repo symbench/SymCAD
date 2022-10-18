@@ -30,13 +30,13 @@ class Torisphere(EndcapShape):
    The `geometry` of this shape includes the following parameters:
 
    - `base_radius`: Radius (in `m`) of the base of the Torisphere
-   - `crown_ratio`: Radius (in `m`) of the tip of the Torisphere
-   - `knuckle_ratio`: Height (in `m`) of the Torisphere from base to tip
+   - `crown_ratio`: Ratio (in `%`) of the radius of the crown of the Torisphere
+                    to its `base_radius`
+   - `knuckle_ratio`: Ratio (in `%`) of the radius of the knuckle of the Torisphere
+                      to its `base_radius`
    - `thickness`: Thickness (in `m`) of the shell of the Torisphere
 
    ![TorisphereGeometry](https://symbench.github.io/SymCAD/images/TorisphereGeometry.png)
-
-   TODO: Talk about geometry
 
    Note that the above dimensions should be interpreted as if the Torisphere is unrotated.
    In other words, any shape rotation takes place *after* the Torisphere dimensions have been

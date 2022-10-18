@@ -50,3 +50,5 @@ class FairingShape(SymPart, metaclass=abc.ABCMeta):
                           if properties_model and isinstance(properties_model, str) else
                        properties_model,
                        material_density_kg_m3)
+
+from .CylinderWithConicalEnds import CylinderWithConicalEnds

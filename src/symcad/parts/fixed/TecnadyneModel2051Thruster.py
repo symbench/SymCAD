@@ -37,7 +37,7 @@ class TecnadyneModel2051Thruster(FixedPart):
       identifier : `str`
          Unique identifying name for the object.
       """
-      super().__init__(identifier, 'thrusters/Tecnadyne_Model_2051-2.FCStd', 11255.278)
+      super().__init__(identifier, 'thrusters/Tecnadyne_Model_2051.FCStd', 11255.278)
 
 
    # Geometric properties -------------------------------------------------------------------------

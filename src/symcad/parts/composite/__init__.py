@@ -50,3 +50,11 @@ class CompositeShape(SymPart, metaclass=abc.ABCMeta):
                           if properties_model and isinstance(properties_model, str) else
                        properties_model,
                        material_density_kg_m3)
+
+from .CrossFormAirfoils import CrossFormAirfoils
+from .FlangedFlatCapsule import FlangedFlatCapsule
+from .HemisphericalCapsule import HemisphericalCapsule
+from .PlanarAirfoils import PlanarAirfoils
+from .SemiellipsoidalCapsule import SemiellipsoidalCapsule
+from .TorisphericalCapsule import TorisphericalCapsule
+from .YFormAirfoils import YFormAirfoils

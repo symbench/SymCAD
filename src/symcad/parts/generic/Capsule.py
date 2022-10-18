@@ -123,8 +123,8 @@ class Capsule(GenericShape):
 
    def get_geometric_parameter_bounds(self, parameter: str) -> Tuple[float, float]:
       parameter_bounds = {
-         'cylinder_radius': (0.0, 2.0),
-         'cylinder_length': (0.0, 2.0),
+         'cylinder_radius': (0.01, 2.0),
+         'cylinder_length': (0.01, 2.0),
          'endcap_length': (0.0, 2.0),
          'thickness': (0.0, 0.05)
       }

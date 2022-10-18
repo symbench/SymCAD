@@ -17,7 +17,7 @@
 from __future__ import annotations
 from PyFreeCAD.FreeCAD import Part
 from typing import Dict, Optional, Tuple, Union
-from sympy import Expr, Symbol, sqrt, atan2, cos, tan
+from sympy import Expr, Symbol, sqrt, atan2, sin, tan
 from . import EndcapShape
 import math
 
@@ -71,7 +71,7 @@ class ConicalFrustrum(EndcapShape):
       outer_bottom_radius_mm = 1000.0 * params['bottom_radius']
       outer_top_radius_mm = 1000.0 * params['top_radius']
       inner_height_mm = outer_height_mm - thickness_mm
-      inner_bottom_radius_mm = outer_bottom_radius_mm - (thickness_mm / math.cos(height_angle))
+      inner_bottom_radius_mm = outer_bottom_radius_mm - (thickness_mm / math.sin(height_angle))
       inner_top_radius_mm = inner_bottom_radius_mm - (inner_height_mm / math.tan(height_angle))
       outer = Part.makeCone(outer_bottom_radius_mm, outer_top_radius_mm, outer_height_mm)
       if not fully_displace:
@@ -116,7 +116,7 @@ class ConicalFrustrum(EndcapShape):
                            self.geometry.bottom_radius - self.geometry.top_radius)
       inner_height = self.geometry.height - self.geometry.thickness
       inner_bottom_radius = self.geometry.bottom_radius - \
-                            (self.geometry.thickness / cos(height_angle))
+                            (self.geometry.thickness / sin(height_angle))
       inner_top_radius = inner_bottom_radius - (inner_height / tan(height_angle))
       volume -= ((inner_height * math.pi / 3.0) * \
                  (inner_bottom_radius**2 + inner_top_radius**2 +

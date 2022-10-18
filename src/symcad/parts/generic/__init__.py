@@ -65,4 +65,5 @@ from .Pipe import Pipe
 from .Prism import Prism
 from .Pyramid import Pyramid
 from .Sphere import Sphere
+from .SymmetricAirfoil import SymmetricAirfoil
 from .Torus import Torus
