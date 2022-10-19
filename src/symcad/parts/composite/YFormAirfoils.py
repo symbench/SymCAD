@@ -98,7 +98,7 @@ class YFormAirfoils(CompositeShape):
                                               False, 3, None, False), False)
          pad = doc.addObject('PartDesign::Pad', 'Pad' + str(i))
          body.addObject(pad)
-         pad.Length = span_mm
+         pad.Length = int(span_mm)
          pad.Profile = sketch
          y_offset = sin(math.pi / 3.0) * separation_radius_mm
          z_offset = cos(math.pi / 3.0) * separation_radius_mm

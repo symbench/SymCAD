@@ -106,7 +106,7 @@ class SymmetricAirfoil(GenericShape):
                                                  False, 3, None, False), False)
       outer_pad = doc.addObject('PartDesign::Pad', 'OuterPad')
       outer_body.addObject(outer_pad)
-      outer_pad.Length = outer_span_mm
+      outer_pad.Length = int(outer_span_mm)
       outer_pad.Profile = outer_sketch
       inner_body = doc.addObject('PartDesign::Body','Inner')
       inner_sketch = doc.addObject('Sketcher::SketchObject', 'InnerSketch')
@@ -119,7 +119,7 @@ class SymmetricAirfoil(GenericShape):
                                                  False, 3, None, False), False)
       inner_pad = doc.addObject('PartDesign::Pad', 'InnerPad')
       inner_body.addObject(inner_pad)
-      inner_pad.Length = inner_span_mm
+      inner_pad.Length = int(inner_span_mm)
       inner_pad.Profile = inner_sketch
       inner_body.Placement = FreeCAD.Placement(FreeCAD.Vector(0, -material_thickness_mm, 0),
                                                FreeCAD.Rotation(0, 0, 0))

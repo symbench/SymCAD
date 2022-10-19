@@ -98,11 +98,11 @@ class CrossFormAirfoils(CompositeShape):
                                               False, 3, None, False), False)
          pad = doc.addObject('PartDesign::Pad', 'Pad' + str(i))
          body.addObject(pad)
-         pad.Length = span_mm
+         pad.Length = int(span_mm)
          pad.Profile = sketch
          placement_vector = FreeCAD.Vector(0, -separation_radius_mm if i == 0 else
                                               (separation_radius_mm if i == 2 else 0),
-                                              -separation_radius_mm if i == 1 else 
+                                              -separation_radius_mm if i == 1 else
                                               (separation_radius_mm if i == 3 else 0))
          body.Placement = FreeCAD.Placement(placement_vector,
                                             FreeCAD.Rotation(-curvature_tilt if i == 2 else
