@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
-from PyFreeCAD.FreeCAD import FreeCAD
+from PyFreeCAD.FreeCAD import FreeCAD, Part
 from .Coordinate import Coordinate
 from .SymPart import SymPart
 from .CAD import CadGeneral
@@ -415,6 +415,48 @@ class Assembly(object):
       doc.recompute()
       CadGeneral.save_assembly(file_path, model_type, doc)
       FreeCAD.closeDocument(doc.Name)
+
+
+   def get_aggregate_model(self, create_displacement_model: Optional[bool] = False) -> Part.Solid:
+      """Retrieves the current assembly as a standalone CAD model.
+
+      Note that all parameters in the assembly must be concrete with no free variables remaining.
+      This can be achieved by first calling `make_concrete(params)` on the assembly object and
+      then calling `get_aggregate_model()` on the resulting concrete assembly.
+
+      If any free parameter is missing a corresponding concrete value in the `params`
+      dictionary, this method will raise a `RuntimeError`.
+
+      Parameters
+      ----------
+      create_displacement_model : `bool`, optional, default=False
+         Whether to create a model representing total environmental displacement.
+
+      Raises
+      ------
+      `RuntimeError`
+         If a free parameter within the assembly does not contain a corresponding concrete value.
+      """
+
+      # Create a new assembly document and add all concrete CAD parts to it
+      assembly = self.clone()
+      assembly._place_parts()
+      doc = FreeCAD.newDocument(self.name)
+      for part in assembly.parts:
+         Assembly._verify_fully_concrete(part, True)
+         part.__cad__.add_to_assembly(part.name,
+                                      doc,
+                                      part.geometry.__dict__,
+                                      part.static_origin.as_tuple(),
+                                      part.static_placement.as_tuple(),
+                                      part.orientation.as_tuple(),
+                                      create_displacement_model)
+
+      # Recompute and create the requested version of the model
+      doc.recompute()
+      model = Part.makeCompound([obj.Shape for obj in doc.Objects])
+      FreeCAD.closeDocument(doc.Name)
+      return model
 
 
    def check_interferences(self) -> List[Tuple[str, str]]:

@@ -304,6 +304,7 @@ class ModeledCad(object):
 
       # Orient and tessellate the model
       model = doc.getObjectsByLabel('Model')[0]
+      model.Shape.tessellate(TESSELATION_VALUE)
       rotation_point = CadGeneral.compute_placement_point(model.Shape, placement_point)
       placement = FreeCAD.Vector(-rotation_point.x, -rotation_point.y, -rotation_point.z)
       rotation = FreeCAD.Rotation(*yaw_pitch_roll_deg)
