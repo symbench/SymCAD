@@ -95,6 +95,7 @@ class FixedPart(SymPart, metaclass=abc.ABCMeta):
       return self.__cad_props__['zlen']
 
 
+from .CatPumps3CP1221Pump import CatPumps3CP1221Pump
 from .Garmin15HGpsReceiver import Garmin15HGpsReceiver
 from .IridiumCore9523Radio import IridiumCore9523Radio
 from .iXbluePhinsCompactC7Ins import iXbluePhinsCompactC7Ins

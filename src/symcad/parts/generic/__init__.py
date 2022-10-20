@@ -60,6 +60,7 @@ from .Cylinder import Cylinder
 from .EllipsoidalCap import EllipsoidalCap
 from .EllipticCylinder import EllipticCylinder
 from .EllipticPipe import EllipticPipe
+from .Fin import Fin
 from .Parallelepiped import Parallelepiped
 from .Pipe import Pipe
 from .Prism import Prism

@@ -92,25 +92,25 @@ class SemiellipsoidalCapsule(CompositeShape):
       outer_endcap_radius_mm = 1000.0 * params['endcap_radius']
       inner_endcap_radius_mm = 1000.0 * (params['endcap_radius'] - params['endcap_thickness'])
       outer_front = doc.addObject('Part::Ellipsoid', 'FrontOuter')
-      outer_front.Radius1 = outer_endcap_radius_mm
-      outer_front.Radius2 = outer_cylinder_radius_mm
-      outer_front.Radius3 = outer_cylinder_radius_mm
+      outer_front.Radius1 = int(outer_endcap_radius_mm)
+      outer_front.Radius2 = int(outer_cylinder_radius_mm)
+      outer_front.Radius3 = int(outer_cylinder_radius_mm)
       outer_front.Angle1 = 0.0
       outer_back = doc.addObject('Part::Ellipsoid', 'BackOuter')
-      outer_back.Radius1 = outer_endcap_radius_mm
-      outer_back.Radius2 = outer_cylinder_radius_mm
-      outer_back.Radius3 = outer_cylinder_radius_mm
+      outer_back.Radius1 = int(outer_endcap_radius_mm)
+      outer_back.Radius2 = int(outer_cylinder_radius_mm)
+      outer_back.Radius3 = int(outer_cylinder_radius_mm)
       outer_back.Angle1 = 0.0
       if not fully_displace:
          inner_front = doc.addObject('Part::Ellipsoid', 'FrontInner')
-         inner_front.Radius1 = inner_endcap_radius_mm
-         inner_front.Radius2 = inner_cylinder_radius_mm
-         inner_front.Radius3 = inner_cylinder_radius_mm
+         inner_front.Radius1 = int(inner_endcap_radius_mm)
+         inner_front.Radius2 = int(inner_cylinder_radius_mm)
+         inner_front.Radius3 = int(inner_cylinder_radius_mm)
          inner_front.Angle1 = 0.0
          inner_back = doc.addObject('Part::Ellipsoid', 'BackInner')
-         inner_back.Radius1 = inner_endcap_radius_mm
-         inner_back.Radius2 = inner_cylinder_radius_mm
-         inner_back.Radius3 = inner_cylinder_radius_mm
+         inner_back.Radius1 = int(inner_endcap_radius_mm)
+         inner_back.Radius2 = int(inner_cylinder_radius_mm)
+         inner_back.Radius3 = int(inner_cylinder_radius_mm)
          inner_back.Angle1 = 0.0
          doc.recompute()
          front = outer_front.Shape.cut(inner_front.Shape)
