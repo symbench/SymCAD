@@ -88,16 +88,16 @@ class NeuralNet(object):
       # Load and parse all trained neural networks within the specified tarball
       with tarfile.open(net_file_path, 'r:xz') as zip_file:
          for filename in zip_file.getnames():
-            file = zip_file.extractfile(filename)
+            data = zip_file.extractfile(filename)
             if filename == 'param_order.txt':
-               self.param_order = file.read().decode('utf-8').split(';')
+               self.param_order = data.read().decode('utf-8').split(';')
             elif filename == 'param_stats.txt':
-               stats = file.read().decode('utf-8').split(';')
+               stats = data.read().decode('utf-8').split(';')
                for stat in stats:
                   param, val = stat.split(':')
                   self.param_transformations[param] = eval(val)
             else:
-               network_bytes = io.BytesIO(file.read())
+               network_bytes = io.BytesIO(data.read())
                network_name = '.'.join(filename.split('.')[:-1])
                self.networks[network_name] = torch.jit.load(network_bytes)
                self.networks[network_name].eval()

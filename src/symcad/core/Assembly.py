@@ -277,6 +277,8 @@ class Assembly(object):
       cloned = Assembly(self.name)
       for part in self.parts:
          cloned.parts.append(part.clone())
+      for collection_name, collection in self.collections.items():
+         cloned.collections[collection_name] = collection.copy()
       return cloned
 
 
@@ -305,6 +307,24 @@ class Assembly(object):
       self.parts.append(shape)
       for collection in include_in_collections:
          self.collections[collection].append(shape.name)
+
+
+   def remove_part_from_collection(self, shape: SymPart, collection: str) -> None:
+      """Removes a `SymPart` from the specified `collection` in the current assembly.
+
+      Parameters
+      ----------
+      shape : `SymPart`
+         Part to remove from a collection.
+      collection : `str`
+         Name of the collection from which to remove the part.
+
+      Raises
+      ------
+      `ValueError`
+         If the part does not exist within the specified collection.
+      """
+      self.collections[collection].remove(shape.name)
 
 
    def get_free_parameters(self) -> List[str]:
@@ -360,7 +380,7 @@ class Assembly(object):
          placements as possible.
       """
       concrete_assembly = self.clone()
-      concrete_assembly._make_concrete([] if params is None else params)
+      concrete_assembly._make_concrete({} if params is None else params)
       concrete_assembly._place_parts()
       return concrete_assembly
 
