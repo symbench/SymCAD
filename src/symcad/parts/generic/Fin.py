@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 from typing import Optional, Tuple, Union
-from sympy import Expr, Symbol, sqrt
+from sympy import Expr, Symbol, Min, Max, sqrt
 from . import GenericShape
 
 class Fin(GenericShape):
@@ -142,3 +142,105 @@ class Fin(GenericShape):
    @property
    def unoriented_height(self) -> Union[float, Expr]:
       return self.geometry.height
+
+   @property
+   def oriented_length(self) -> Union[float, Expr]:
+      min_x, max_x = 1000000000000.0, -1000000000000.0
+      R = self.orientation.get_rotation_matrix_row(0)
+      point = (0.0, self.geometry.thickness, 0.0)
+      x = sum([R[i] * point[i] for i in range(3)])
+      min_x = Min(min_x, x)
+      max_x = Max(max_x, x)
+      point = (self.geometry.lower_length, 0.0, 0.0)
+      x = sum([R[i] * point[i] for i in range(3)])
+      min_x = Min(min_x, x)
+      max_x = Max(max_x, x)
+      point = (self.geometry.lower_length, self.geometry.thickness, 0.0)
+      x = sum([R[i] * point[i] for i in range(3)])
+      min_x = Min(min_x, x)
+      max_x = Max(max_x, x)
+      point = (self.geometry.lower_length - self.geometry.upper_length, 0.0, self.geometry.height)
+      x = sum([R[i] * point[i] for i in range(3)])
+      min_x = Min(min_x, x)
+      max_x = Max(max_x, x)
+      point = (self.geometry.lower_length, 0.0, self.geometry.height)
+      x = sum([R[i] * point[i] for i in range(3)])
+      min_x = Min(min_x, x)
+      max_x = Max(max_x, x)
+      point = (self.geometry.lower_length - self.geometry.upper_length, self.geometry.thickness, self.geometry.height)
+      x = sum([R[i] * point[i] for i in range(3)])
+      min_x = Min(min_x, x)
+      max_x = Max(max_x, x)
+      point = (self.geometry.lower_length, self.geometry.thickness, self.geometry.height)
+      x = sum([R[i] * point[i] for i in range(3)])
+      min_x = Min(min_x, x)
+      max_x = Max(max_x, x)
+      return max_x - min_x
+
+   @property
+   def oriented_width(self) -> Union[float, Expr]:
+      min_x, max_x = 1000000000000.0, -1000000000000.0
+      R = self.orientation.get_rotation_matrix_row(1)
+      point = (0.0, self.geometry.thickness, 0.0)
+      x = sum([R[i] * point[i] for i in range(3)])
+      min_x = Min(min_x, x)
+      max_x = Max(max_x, x)
+      point = (self.geometry.lower_length, 0.0, 0.0)
+      x = sum([R[i] * point[i] for i in range(3)])
+      min_x = Min(min_x, x)
+      max_x = Max(max_x, x)
+      point = (self.geometry.lower_length, self.geometry.thickness, 0.0)
+      x = sum([R[i] * point[i] for i in range(3)])
+      min_x = Min(min_x, x)
+      max_x = Max(max_x, x)
+      point = (self.geometry.lower_length - self.geometry.upper_length, 0.0, self.geometry.height)
+      x = sum([R[i] * point[i] for i in range(3)])
+      min_x = Min(min_x, x)
+      max_x = Max(max_x, x)
+      point = (self.geometry.lower_length, 0.0, self.geometry.height)
+      x = sum([R[i] * point[i] for i in range(3)])
+      min_x = Min(min_x, x)
+      max_x = Max(max_x, x)
+      point = (self.geometry.lower_length - self.geometry.upper_length, self.geometry.thickness, self.geometry.height)
+      x = sum([R[i] * point[i] for i in range(3)])
+      min_x = Min(min_x, x)
+      max_x = Max(max_x, x)
+      point = (self.geometry.lower_length, self.geometry.thickness, self.geometry.height)
+      x = sum([R[i] * point[i] for i in range(3)])
+      min_x = Min(min_x, x)
+      max_x = Max(max_x, x)
+      return max_x - min_x
+
+   @property
+   def oriented_height(self) -> Union[float, Expr]:
+      min_x, max_x = 1000000000000.0, -1000000000000.0
+      R = self.orientation.get_rotation_matrix_row(2)
+      point = (0.0, self.geometry.thickness, 0.0)
+      x = sum([R[i] * point[i] for i in range(3)])
+      min_x = Min(min_x, x)
+      max_x = Max(max_x, x)
+      point = (self.geometry.lower_length, 0.0, 0.0)
+      x = sum([R[i] * point[i] for i in range(3)])
+      min_x = Min(min_x, x)
+      max_x = Max(max_x, x)
+      point = (self.geometry.lower_length, self.geometry.thickness, 0.0)
+      x = sum([R[i] * point[i] for i in range(3)])
+      min_x = Min(min_x, x)
+      max_x = Max(max_x, x)
+      point = (self.geometry.lower_length - self.geometry.upper_length, 0.0, self.geometry.height)
+      x = sum([R[i] * point[i] for i in range(3)])
+      min_x = Min(min_x, x)
+      max_x = Max(max_x, x)
+      point = (self.geometry.lower_length, 0.0, self.geometry.height)
+      x = sum([R[i] * point[i] for i in range(3)])
+      min_x = Min(min_x, x)
+      max_x = Max(max_x, x)
+      point = (self.geometry.lower_length - self.geometry.upper_length, self.geometry.thickness, self.geometry.height)
+      x = sum([R[i] * point[i] for i in range(3)])
+      min_x = Min(min_x, x)
+      max_x = Max(max_x, x)
+      point = (self.geometry.lower_length, self.geometry.thickness, self.geometry.height)
+      x = sum([R[i] * point[i] for i in range(3)])
+      min_x = Min(min_x, x)
+      max_x = Max(max_x, x)
+      return max_x - min_x

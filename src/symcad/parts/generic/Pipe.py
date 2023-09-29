@@ -17,7 +17,7 @@
 from __future__ import annotations
 from PyFreeCAD.FreeCAD import FreeCAD, Part
 from typing import Dict, Optional, Tuple, Union
-from sympy import Expr, Symbol
+from sympy import Expr, Symbol, Min, Max
 from . import GenericShape
 import math
 
@@ -135,3 +135,51 @@ class Pipe(GenericShape):
    @property
    def unoriented_height(self) -> Union[float, Expr]:
       return self.geometry.height
+
+   @property
+   def oriented_length(self) -> Union[float, Expr]:
+      min_x, max_x = 1000000000000.0, -1000000000000.0
+      R = self.orientation.get_rotation_matrix_row(0)
+      for i in range(0, 360, 30):
+        deg_radians = math.radians(i)
+        point = (self.geometry.radius * math.cos(deg_radians), self.geometry.radius * math.sin(deg_radians), 0.0)
+        x = sum([R[i] * point[i] for i in range(3)])
+        min_x = Min(min_x, x)
+        max_x = Max(max_x, x)
+        point = (self.geometry.radius * math.cos(deg_radians), self.geometry.radius * math.sin(deg_radians), self.geometry.height)
+        x = sum([R[i] * point[i] for i in range(3)])
+        min_x = Min(min_x, x)
+        max_x = Max(max_x, x)
+      return max_x - min_x
+
+   @property
+   def oriented_width(self) -> Union[float, Expr]:
+      min_x, max_x = 1000000000000.0, -1000000000000.0
+      R = self.orientation.get_rotation_matrix_row(1)
+      for i in range(0, 360, 20):
+        deg_radians = math.radians(i)
+        point = (self.geometry.radius * math.cos(deg_radians), self.geometry.radius * math.sin(deg_radians), 0.0)
+        x = sum([R[i] * point[i] for i in range(3)])
+        min_x = Min(min_x, x)
+        max_x = Max(max_x, x)
+        point = (self.geometry.radius * math.cos(deg_radians), self.geometry.radius * math.sin(deg_radians), self.geometry.height)
+        x = sum([R[i] * point[i] for i in range(3)])
+        min_x = Min(min_x, x)
+        max_x = Max(max_x, x)
+      return max_x - min_x
+
+   @property
+   def oriented_height(self) -> Union[float, Expr]:
+      min_x, max_x = 1000000000000.0, -1000000000000.0
+      R = self.orientation.get_rotation_matrix_row(2)
+      for i in range(0, 360, 20):
+        deg_radians = math.radians(i)
+        point = (self.geometry.radius * math.cos(deg_radians), self.geometry.radius * math.sin(deg_radians), 0.0)
+        x = sum([R[i] * point[i] for i in range(3)])
+        min_x = Min(min_x, x)
+        max_x = Max(max_x, x)
+        point = (self.geometry.radius * math.cos(deg_radians), self.geometry.radius * math.sin(deg_radians), self.geometry.height)
+        x = sum([R[i] * point[i] for i in range(3)])
+        min_x = Min(min_x, x)
+        max_x = Max(max_x, x)
+      return max_x - min_x

@@ -17,7 +17,7 @@
 from __future__ import annotations
 from PyFreeCAD.FreeCAD import FreeCAD, Part
 from typing import Dict, Optional, Tuple, Union
-from sympy import Expr, Symbol, pi, sqrt, sin, tan, cot
+from sympy import Expr, Symbol, Min, Max, pi, sqrt, sin, tan, cot
 from . import GenericShape
 import math
 
@@ -179,3 +179,57 @@ class Pyramid(GenericShape):
    @property
    def unoriented_height(self) -> Union[float, Expr]:
       return self.geometry.height
+
+   @property
+   def oriented_length(self) -> Union[float, Expr]:
+      if isinstance(self.geometry.num_edges, Expr):
+         raise RuntimeError('Cannot compute the oriented geometry of a Pyramid with a symbolic number of edges')
+      min_x, max_x, radius = 1000000000000.0, -1000000000000.0, self.geometry.edge_length / (2.0 * math.sin(pi / self.geometry.num_edges))
+      R = self.orientation.get_rotation_matrix_row(0)
+      for i in range(0, self.geometry.num_edges):
+        radians = 2.0 * pi * i / self.geometry.num_edges
+        point = (radius * math.cos(radians), radius * math.sin(radians), 0.0)
+        x = sum([R[i] * point[i] for i in range(3)])
+        min_x = Min(min_x, x)
+        max_x = Max(max_x, x)
+      point = (0.0, 0.0, self.geometry.height)
+      x = sum([R[i] * point[i] for i in range(3)])
+      min_x = Min(min_x, x)
+      max_x = Max(max_x, x)
+      return max_x - min_x
+
+   @property
+   def oriented_width(self) -> Union[float, Expr]:
+      if isinstance(self.geometry.num_edges, Expr):
+         raise RuntimeError('Cannot compute the oriented geometry of a Pyramid with a symbolic number of edges')
+      min_x, max_x, radius = 1000000000000.0, -1000000000000.0, self.geometry.edge_length / (2.0 * math.sin(pi / self.geometry.num_edges))
+      R = self.orientation.get_rotation_matrix_row(1)
+      for i in range(0, self.geometry.num_edges):
+        radians = 2.0 * pi * i / self.geometry.num_edges
+        point = (radius * math.cos(radians), radius * math.sin(radians), 0.0)
+        x = sum([R[i] * point[i] for i in range(3)])
+        min_x = Min(min_x, x)
+        max_x = Max(max_x, x)
+      point = (0.0, 0.0, self.geometry.height)
+      x = sum([R[i] * point[i] for i in range(3)])
+      min_x = Min(min_x, x)
+      max_x = Max(max_x, x)
+      return max_x - min_x
+
+   @property
+   def oriented_height(self) -> Union[float, Expr]:
+      if isinstance(self.geometry.num_edges, Expr):
+         raise RuntimeError('Cannot compute the oriented geometry of a Pyramid with a symbolic number of edges')
+      min_x, max_x, radius = 1000000000000.0, -1000000000000.0, self.geometry.edge_length / (2.0 * math.sin(pi / self.geometry.num_edges))
+      R = self.orientation.get_rotation_matrix_row(2)
+      for i in range(0, self.geometry.num_edges):
+        radians = 2.0 * pi * i / self.geometry.num_edges
+        point = (radius * math.cos(radians), radius * math.sin(radians), 0.0)
+        x = sum([R[i] * point[i] for i in range(3)])
+        min_x = Min(min_x, x)
+        max_x = Max(max_x, x)
+      point = (0.0, 0.0, self.geometry.height)
+      x = sum([R[i] * point[i] for i in range(3)])
+      min_x = Min(min_x, x)
+      max_x = Max(max_x, x)
+      return max_x - min_x

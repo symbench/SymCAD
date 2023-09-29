@@ -206,6 +206,9 @@ def test_geometric_properties(print_output: bool = False):
       print('\tHeight (Unoriented): {}'.format(shape_symbolic.unoriented_height))
       print('\tCenter of Gravity (Unoriented): {}'.format(shape_symbolic.unoriented_center_of_gravity))
       print('\tCenter of Buoyancy (Unoriented): {}'.format(shape_symbolic.unoriented_center_of_buoyancy))
+      print('\tLength (Oriented): {}'.format(shape_symbolic.oriented_length))
+      print('\tWidth (Oriented): {}'.format(shape_symbolic.oriented_width))
+      print('\tHeight (Oriented): {}'.format(shape_symbolic.oriented_height))
 
    # Print all hybrid geometric properties if requested
    if print_output:
@@ -219,6 +222,9 @@ def test_geometric_properties(print_output: bool = False):
       print('\tHeight (Unoriented): {}'.format(shape_hybrid.unoriented_height))
       print('\tCenter of Gravity (Unoriented): {}'.format(shape_hybrid.unoriented_center_of_gravity))
       print('\tCenter of Buoyancy (Unoriented): {}'.format(shape_hybrid.unoriented_center_of_buoyancy))
+      print('\tLength (Oriented): {}'.format(shape_hybrid.oriented_length))
+      print('\tWidth (Oriented): {}'.format(shape_hybrid.oriented_width))
+      print('\tHeight (Oriented): {}'.format(shape_hybrid.oriented_height))
 
    # Print all concrete geometric properties if requested
    if print_output:
@@ -232,6 +238,9 @@ def test_geometric_properties(print_output: bool = False):
       print('\tHeight (Unoriented): {}'.format(shape_concrete.unoriented_height))
       print('\tCenter of Gravity (Unoriented): {}'.format(shape_concrete.unoriented_center_of_gravity))
       print('\tCenter of Buoyancy (Unoriented): {}'.format(shape_concrete.unoriented_center_of_buoyancy))
+      print('\tLength (Oriented): {}'.format(shape_concrete.oriented_length))
+      print('\tWidth (Oriented): {}'.format(shape_concrete.oriented_width))
+      print('\tHeight (Oriented): {}'.format(shape_concrete.oriented_height))
 
 
 def test_oriented_properties(print_output: bool = False):

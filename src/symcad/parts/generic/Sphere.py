@@ -110,3 +110,15 @@ class Sphere(GenericShape):
    @property
    def unoriented_height(self) -> Union[float, Expr]:
       return self.unoriented_width
+
+   @property
+   def oriented_length(self) -> Union[float, Expr]:
+      return self.unoriented_length
+
+   @property
+   def oriented_width(self) -> Union[float, Expr]:
+      return self.unoriented_width
+
+   @property
+   def oriented_height(self) -> Union[float, Expr]:
+      return self.unoriented_height
