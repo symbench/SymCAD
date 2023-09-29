@@ -94,6 +94,33 @@ class FixedPart(SymPart, metaclass=abc.ABCMeta):
    def unoriented_height(self) -> Union[float, Expr]:
       return self.__cad_props__['zlen']
 
+   @property
+   def oriented_length(self) -> Union[float, Expr]:
+      cad_props = self.__cad__.get_physical_properties({},
+                                                       (0.0, 0.0, 0.0),
+                                                       self.orientation.as_tuple(),
+                                                       self.material_density,
+                                                       True)
+      return cad_props['xlen']
+
+   @property
+   def oriented_width(self) -> Union[float, Expr]:
+      cad_props = self.__cad__.get_physical_properties({},
+                                                       (0.0, 0.0, 0.0),
+                                                       self.orientation.as_tuple(),
+                                                       self.material_density,
+                                                       True)
+      return cad_props['ylen']
+
+   @property
+   def oriented_height(self) -> Union[float, Expr]:
+      cad_props = self.__cad__.get_physical_properties({},
+                                                       (0.0, 0.0, 0.0),
+                                                       self.orientation.as_tuple(),
+                                                       self.material_density,
+                                                       True)
+      return cad_props['zlen']
+
 
 from .CatPumps3CP1221Pump import CatPumps3CP1221Pump
 from .Garmin15HGpsReceiver import Garmin15HGpsReceiver
