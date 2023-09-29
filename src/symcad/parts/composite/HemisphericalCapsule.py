@@ -169,3 +169,18 @@ class HemisphericalCapsule(CompositeShape):
    @property
    def unoriented_height(self) -> Union[float, Expr]:
       return self.unoriented_width
+
+   @property
+   def oriented_length(self) -> Union[float, Expr]:
+      # TODO: Implement this
+      return 0
+
+   @property
+   def oriented_width(self) -> Union[float, Expr]:
+      # TODO: Implement this
+      return 0
+
+   @property
+   def oriented_height(self) -> Union[float, Expr]:
+      # TODO: Implement this
+      return 0

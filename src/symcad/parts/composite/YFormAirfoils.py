@@ -220,3 +220,18 @@ class YFormAirfoils(CompositeShape):
       z_offset = cos(math.pi / 3.0) * self.geometry.separation_radius
       z_width = sin(math.pi / 6.0) * (cosine * self.geometry.span)
       return z_offset + z_width + self.geometry.separation_radius + self.geometry.span
+
+   @property
+   def oriented_length(self) -> Union[float, Expr]:
+      # TODO: Implement this
+      return 0
+
+   @property
+   def oriented_width(self) -> Union[float, Expr]:
+      # TODO: Implement this
+      return 0
+
+   @property
+   def oriented_height(self) -> Union[float, Expr]:
+      # TODO: Implement this
+      return 0

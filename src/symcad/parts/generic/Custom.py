@@ -185,3 +185,18 @@ class Custom(GenericShape):
    def unoriented_height(self) -> Union[float, Expr]:
       return self.__cad_props__['zlen'] if self.__cad_props__ else \
              self.__neural_net__.evaluate('zlen', **self.geometry.as_dict())
+
+   @property
+   def oriented_length(self) -> Union[float, Expr]:
+      # TODO: Implement this
+      return 0
+
+   @property
+   def oriented_width(self) -> Union[float, Expr]:
+      # TODO: Implement this
+      return 0
+
+   @property
+   def oriented_height(self) -> Union[float, Expr]:
+      # TODO: Implement this
+      return 0

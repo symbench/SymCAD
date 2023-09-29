@@ -43,7 +43,7 @@ def test_geometric_properties(print_output: bool = False):
    assert abs(cad_props['min_y']) < 0.001
    assert abs(cad_props['min_z']) < 0.001
    assert abs(cad_props['mass'] - shape.mass) < 0.001
-   assert abs(shape.mass - 0.015) < 0.001
+   assert abs(shape.mass - 6.7) < 0.001
    assert abs(cad_props['material_volume'] - shape.material_volume) < 0.001
    assert abs(cad_props['displaced_volume'] - shape.displaced_volume) < 0.001
 

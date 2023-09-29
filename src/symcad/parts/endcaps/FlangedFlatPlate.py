@@ -128,3 +128,18 @@ class FlangedFlatPlate(EndcapShape):
    @property
    def unoriented_height(self) -> Union[float, Expr]:
       return self.geometry.thickness
+
+   @property
+   def oriented_length(self) -> Union[float, Expr]:
+      # TODO: Implement this
+      return 0
+
+   @property
+   def oriented_width(self) -> Union[float, Expr]:
+      # TODO: Implement this
+      return 0
+
+   @property
+   def oriented_height(self) -> Union[float, Expr]:
+      # TODO: Implement this
+      return 0
