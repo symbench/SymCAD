@@ -635,17 +635,20 @@ class SymPart(metaclass=abc.ABCMeta):
    @property
    def oriented_length(self) -> Union[float, Expr]:
       """X-axis length (in `m`) of the bounding box of the **oriented** SymPart (read-only)."""
-      # TODO: Implement this
-      raise NotImplementedError
+      R = self.orientation.get_rotation_matrix_row(0)
+      original_extents = [self.unoriented_length, self.unoriented_width, self.unoriented_height]
+      return sum([abs(R[i] * original_extents[i]) for i in range(3)])
 
    @property
    def oriented_width(self) -> Union[float, Expr]:
-      """Y-axis width (in `m`) of the bounding box of the **oriented** SymPart (read-only)."""
-      # TODO: Implement this
-      raise NotImplementedError
+      """Y-axis length (in `m`) of the bounding box of the **oriented** SymPart (read-only)."""
+      R = self.orientation.get_rotation_matrix_row(1)
+      original_extents = [self.unoriented_length, self.unoriented_width, self.unoriented_height]
+      return sum([abs(R[i] * original_extents[i]) for i in range(3)])
 
    @property
    def oriented_height(self) -> Union[float, Expr]:
-      """Z-axis height (in `m`) of the bounding box of the **oriented** SymPart (read-only)."""
-      # TODO: Implement this
-      raise NotImplementedError
+      """Z-axis length (in `m`) of the bounding box of the **oriented** SymPart (read-only)."""
+      R = self.orientation.get_rotation_matrix_row(2)
+      original_extents = [self.unoriented_length, self.unoriented_width, self.unoriented_height]
+      return sum([abs(R[i] * original_extents[i]) for i in range(3)])
