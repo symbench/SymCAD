@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple, Union
 from sympy import Expr, Symbol
 from copy import deepcopy
 from operator import mul
@@ -299,6 +299,40 @@ class Rotation(object):
       q3 = sympy.cos(half_roll) * sympy.cos(half_pitch) * sympy.sin(half_yaw) \
            - sympy.sin(half_roll) * sympy.sin(half_pitch) * sympy.cos(half_yaw)
       return s, q1, q2, q3
+
+
+   def get_rotation_matrix_row(self, row_index: int) -> List[List[float]]:
+      """Returns a single row from the 3D rotation matrix representing the `Rotation` object.
+      
+      Parameters
+      ----------
+      row_index : `int`
+         Index of the rotation matrix row to return between [0, 2].
+      
+      Returns
+      -------
+      `List[float]`
+         A 3-element list representing a single row from the rotation matrix for this Rotation object.
+      """
+      if row_index == 0:
+         rotation_matrix0 = sympy.cos(self.pitch)*sympy.cos(self.yaw)
+         rotation_matrix1 = sympy.sin(self.roll)*sympy.sin(self.pitch)*sympy.cos(self.yaw) \
+                          - sympy.sin(self.yaw)*sympy.cos(self.roll)
+         rotation_matrix2 = sympy.sin(self.roll)*sympy.sin(self.yaw) \
+                          + sympy.sin(self.pitch)*sympy.cos(self.roll)*sympy.cos(self.yaw)
+      elif row_index == 1:
+         rotation_matrix0 = sympy.sin(self.yaw)*sympy.cos(self.pitch)
+         rotation_matrix1 = sympy.sin(self.roll)*sympy.sin(self.pitch)*sympy.sin(self.yaw) \
+                          + sympy.cos(self.roll)*sympy.cos(self.yaw)
+         rotation_matrix2 = sympy.sin(self.pitch)*sympy.sin(self.yaw)*sympy.cos(self.roll) \
+                          - sympy.sin(self.roll)*sympy.cos(self.yaw)
+      elif row_index == 2:
+         rotation_matrix0 = -sympy.sin(self.pitch)
+         rotation_matrix1 = sympy.sin(self.roll)*sympy.cos(self.pitch)
+         rotation_matrix2 = sympy.cos(self.roll)*sympy.cos(self.pitch)
+      else:
+         raise RuntimeError('Invalid row_index parameter ({})...must be between 0 and 2'.format(row_index))
+      return [rotation_matrix0, rotation_matrix1, rotation_matrix2]
 
 
    def get_rotation_matrix(self) -> List[List[float]]:
