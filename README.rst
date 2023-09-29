@@ -37,6 +37,4 @@ Known TODO Items
 ----------------
 
 - Add docs for custom parts - auto-retrieval of free params
-- Import fixed parts for STR
 - Fix Cg/Cg/Props for some endcaps
-- Oriented length/width/height

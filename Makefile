@@ -2,6 +2,10 @@
 
 all : docs
 
+update :
+	git submodule update --remote --merge
+	python -m pip install --upgrade --force-reinstall -e .
+
 clean :
 	rm -rf dist docs/symcad docs/*.html docs/*.js
 
